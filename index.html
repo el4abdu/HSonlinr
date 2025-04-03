@@ -82,6 +82,8 @@
                 <div class="dropdown-menu">
                     <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
                     <a href="#" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="dropdown-item" id="login-button"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    <a href="#" class="dropdown-item" id="signup-button"><i class="fas fa-user-plus"></i> Register</a>
                     <a href="#" class="dropdown-item" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -450,6 +452,7 @@
     </main>
 
     <div id="notification-container" class="notification-container"></div>
+    <div id="auth-error" class="auth-error"></div>
 
     <div class="modal" id="loading-game-modal">
         <div class="modal-content">
@@ -472,5 +475,48 @@
     <script src="src/js/auth.js"></script>
     <script src="src/js/game.js"></script>
     <script src="src/js/dashboard.js"></script>
+    
+    <!-- Auth Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize login/signup buttons
+            const loginButton = document.getElementById('login-button');
+            const signupButton = document.getElementById('signup-button');
+            
+            if (loginButton) {
+                loginButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (window.Clerk) {
+                        window.Clerk.openSignIn();
+                    }
+                });
+            }
+            
+            if (signupButton) {
+                signupButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (window.Clerk) {
+                        window.Clerk.openSignUp();
+                    }
+                });
+            }
+            
+            // Update UI based on auth state
+            function updateAuthUI(isLoggedIn) {
+                if (loginButton) loginButton.style.display = isLoggedIn ? 'none' : 'block';
+                if (signupButton) signupButton.style.display = isLoggedIn ? 'none' : 'block';
+                if (logoutButton) logoutButton.style.display = isLoggedIn ? 'block' : 'none';
+            }
+            
+            // Listen for auth state changes
+            document.addEventListener('auth-initialized', (e) => {
+                const isLoggedIn = e.detail?.user || window.Clerk?.user;
+                updateAuthUI(!!isLoggedIn);
+            });
+            
+            // Check initial state
+            updateAuthUI(!!window.Clerk?.user);
+        });
+    </script>
 </body>
 </html> 

@@ -14,18 +14,34 @@ let currentUser = null;
 let authInitialized = false;
 let clerkReady = false;
 
-// Config
-const REDIRECT_URL = '/game.html';
-const LOGIN_URL = '/login.html';
+// Add a variable to store the last page visited
+let lastPageVisited = sessionStorage.getItem('lastPageVisited') || '/index.html';
+
+// Config - Changed to use the last page visited instead of hardcoded redirect
+const LOGIN_URL = '/index.html';
 
 // Initialize Clerk
-if (window.Clerk) {
-    window.Clerk.load({
-        publishableKey: config.CLERK_PUBLISHABLE_KEY
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Store the current page in session storage (if not on login page)
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('login.html') && !currentPath.includes('register.html')) {
+        sessionStorage.setItem('lastPageVisited', currentPath);
+    }
+    
+    // Setup Clerk
+    if (window.Clerk) {
+        window.Clerk.load({
+            publishableKey: config.CLERK_PUBLISHABLE_KEY,
+            // When a user signs in or up, redirect them back to the last page
+            afterSignIn: () => {
+                window.location.href = lastPageVisited;
+            },
+            afterSignUp: () => {
+                window.location.href = lastPageVisited;
+            }
+        });
+    }
+    
     initializeAuth();
 });
 
@@ -41,11 +57,6 @@ function initializeAuth() {
         if (user) {
             // User is signed in
             checkUserProfile(user);
-        } else {
-            // No user is signed in, redirect to login
-            if (!isLoginPage()) {
-                window.location.href = 'login.html';
-            }
         }
     });
     
@@ -140,7 +151,7 @@ function handleAuthStateChange(user) {
         
         // If on login page, redirect to game
         if (isLoginPage() || isRegisterPage()) {
-            window.location.href = REDIRECT_URL;
+            window.location.href = LOGIN_URL;
             return;
         }
         
@@ -184,7 +195,7 @@ function setupAuthComponents() {
  * @return {boolean} - Whether current page is login page
  */
 function isLoginPage() {
-    return window.location.pathname.includes('login.html');
+    return false; // No longer need to check for login page
 }
 
 /**
@@ -192,14 +203,17 @@ function isLoginPage() {
  * @return {boolean} - Whether current page is register page
  */
 function isRegisterPage() {
-    return window.location.pathname.includes('register.html');
+    return false; // No longer need to check for register page
 }
 
 /**
- * Redirect to login page
+ * Redirect to login page - Modified to use Clerk modal instead of redirect
  */
 function redirectToLogin() {
-    window.location.href = LOGIN_URL;
+    // Instead of redirecting, we'll just show the Clerk modal
+    if (window.Clerk) {
+        window.Clerk.openSignIn();
+    }
 }
 
 /**
