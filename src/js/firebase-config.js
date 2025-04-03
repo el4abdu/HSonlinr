@@ -3,69 +3,56 @@
  * Setup for Firebase services including Realtime Database
  */
 
-// Initialize Firebase configuration
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import { getDatabase } from "firebase/database";
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "shadow-heist-online.firebaseapp.com",
-  databaseURL: "https://shadow-heist-online-default-rtdb.firebaseio.com",
-  projectId: "shadow-heist-online",
-  storageBucket: "shadow-heist-online.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abc123def456ghi789jkl",
-  measurementId: "G-ABC123DEF4"
+  apiKey: "AIzaSyBUKyRMxw2TI1KeUt0SjE5mdh1gJozcgkg",
+  authDomain: "hsonline-2d022.firebaseapp.com",
+  projectId: "hsonline-2d022",
+  storageBucket: "hsonline-2d022.firebasestorage.app",
+  messagingSenderId: "790135168815",
+  appId: "1:790135168815:web:e43ab3e10c2263c9398bda",
+  measurementId: "G-ZP1ZXJ8XW3"
 };
 
-// Firebase services
-let auth;
-let database;
+// Initialize Firebase services
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+const database = getDatabase(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+// Track realtime database listeners for cleanup
 let realTimeListeners = [];
 
 /**
- * Initialize Firebase services
- */
-function initializeFirebase() {
-  // Initialize Firebase app
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  
-  // Get service instances
-  auth = firebase.auth();
-  database = firebase.database();
-  
-  // Set up auth state listener
-  setupAuthStateListener();
-  
-  console.log("Firebase initialized successfully");
-}
-
-/**
- * Set up auth state change listener
+ * Sets up an auth state listener to track user sign-in status
  */
 function setupAuthStateListener() {
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(user => {
     if (user) {
-      console.log("User is signed in:", user.uid);
-      // Dispatch auth initialized event
-      window.authInitialized = true;
-      document.dispatchEvent(new Event('auth-initialized'));
-      
-      // Keep user online status
+      // User is signed in
       updateUserOnlineStatus(user.uid, true);
       setupUserPresence(user.uid);
     } else {
-      console.log("User is signed out");
-      // Dispatch auth initialized event
-      window.authInitialized = true;
-      document.dispatchEvent(new Event('auth-initialized'));
+      // User is signed out
+      // Clean up any presence listeners
     }
   });
 }
 
 /**
- * Update user online status in database
- * @param {string} userId - User ID to update
- * @param {boolean} isOnline - Whether user is online
+ * Update user's online status in the database
+ * @param {string} userId - The user ID
+ * @param {boolean} isOnline - Whether the user is online
  */
 function updateUserOnlineStatus(userId, isOnline) {
   if (!userId) return;
@@ -73,15 +60,15 @@ function updateUserOnlineStatus(userId, isOnline) {
   const userStatusRef = database.ref(`/users/${userId}/status`);
   userStatusRef.update({
     online: isOnline,
-    lastSeen: firebase.database.ServerValue.TIMESTAMP
+    lastSeen: new Date().toISOString()
   }).catch(error => {
     console.error("Error updating online status:", error);
   });
 }
 
 /**
- * Setup user presence tracking with connection state
- * @param {string} userId - User ID to track
+ * Setup presence system to track when users connect/disconnect
+ * @param {string} userId - The user ID
  */
 function setupUserPresence(userId) {
   if (!userId) return;
@@ -89,7 +76,7 @@ function setupUserPresence(userId) {
   // Create a reference to this user's specific status node
   const userStatusRef = database.ref(`/users/${userId}/status`);
   
-  // Create a reference to the special '.info/connected' path in Firebase Realtime Database
+  // Create a reference to the special '.info/connected' path
   const connectedRef = database.ref('.info/connected');
   
   // When the client's connection state changes...
@@ -99,25 +86,32 @@ function setupUserPresence(userId) {
       return;
     }
     
-    // If we're connected, we need to set up our presence system
-    // When this device disconnects, update the user status
+    // If we're connected, set up our presence system
     userStatusRef.onDisconnect().update({
       online: false,
-      lastSeen: firebase.database.ServerValue.TIMESTAMP
+      lastSeen: new Date().toISOString()
     }).then(() => {
-      // The onDisconnect() will only trigger once this device disconnects.
-      // Now, we update the current connection state to 'online'
+      // The onDisconnect() will only trigger once this device disconnects
+      // Now, update the current connection state to 'online'
       updateUserOnlineStatus(userId, true);
     });
   });
 }
 
 /**
- * Add a real-time listener to a database path
- * @param {string} path - Database path to listen to
- * @param {string} event - Event type (e.g., 'value', 'child_added')
- * @param {Function} callback - Callback function when data changes
- * @return {Function} - Function to remove the listener
+ * Initialize Firebase services and set up listeners
+ */
+function initializeFirebase() {
+  // Set up auth state listener
+  setupAuthStateListener();
+}
+
+/**
+ * Add a realtime listener to a database path
+ * @param {string} path - Database path
+ * @param {string} event - Event type (value, child_added, etc.)
+ * @param {Function} callback - Callback function
+ * @returns {Function} Unsubscribe function
  */
 function addRealtimeListener(path, event, callback) {
   if (!database) {
@@ -128,52 +122,23 @@ function addRealtimeListener(path, event, callback) {
   const ref = database.ref(path);
   ref.on(event, callback);
   
-  // Store the listener details to allow for cleanup
-  const listenerInfo = { path, event, callback, ref };
-  realTimeListeners.push(listenerInfo);
+  // Store the listener for potential cleanup
+  const listener = { ref, event, callback };
+  realTimeListeners.push(listener);
   
-  // Return function to remove the listener
-  return () => removeRealtimeListener(listenerInfo);
-}
-
-/**
- * Remove a real-time listener
- * @param {Object} listenerInfo - Listener info object
- */
-function removeRealtimeListener(listenerInfo) {
-  if (!listenerInfo || !listenerInfo.ref) return;
-  
-  listenerInfo.ref.off(listenerInfo.event, listenerInfo.callback);
-  
-  // Remove from our tracking array
-  const index = realTimeListeners.findIndex(l => 
-    l.path === listenerInfo.path && 
-    l.event === listenerInfo.event && 
-    l.callback === listenerInfo.callback
-  );
-  
-  if (index !== -1) {
-    realTimeListeners.splice(index, 1);
-  }
-}
-
-/**
- * Remove all real-time listeners
- */
-function removeAllListeners() {
-  realTimeListeners.forEach(listener => {
-    if (listener.ref) {
-      listener.ref.off(listener.event, listener.callback);
-    }
-  });
-  
-  realTimeListeners = [];
+  // Return a function to remove this specific listener
+  return () => {
+    ref.off(event, callback);
+    realTimeListeners = realTimeListeners.filter(l => 
+      l.ref !== ref || l.event !== event || l.callback !== callback
+    );
+  };
 }
 
 /**
  * Get a reference to a database path
  * @param {string} path - Database path
- * @return {Object} - Firebase database reference
+ * @returns {Object} Database reference
  */
 function getDatabaseRef(path) {
   if (!database) {
@@ -185,10 +150,10 @@ function getDatabaseRef(path) {
 }
 
 /**
- * Create or update data at a specific path
+ * Set data at a database path
  * @param {string} path - Database path
- * @param {Object} data - Data to update
- * @return {Promise} - Promise that resolves when data is updated
+ * @param {Object} data - Data to set
+ * @returns {Promise} Promise that resolves when complete
  */
 function setData(path, data) {
   const ref = getDatabaseRef(path);
@@ -198,10 +163,10 @@ function setData(path, data) {
 }
 
 /**
- * Update specific fields at a database path
+ * Update data at a database path
  * @param {string} path - Database path
- * @param {Object} updates - Fields to update
- * @return {Promise} - Promise that resolves when update is complete
+ * @param {Object} updates - Updates to apply
+ * @returns {Promise} Promise that resolves when complete
  */
 function updateData(path, updates) {
   const ref = getDatabaseRef(path);
@@ -211,10 +176,10 @@ function updateData(path, updates) {
 }
 
 /**
- * Push new data to a list at a database path
+ * Push new data to a database list
  * @param {string} path - Database path
  * @param {Object} data - Data to push
- * @return {Promise} - Promise that resolves with the new reference
+ * @returns {Promise<Object>} Promise that resolves with the new reference
  */
 function pushData(path, data) {
   const ref = getDatabaseRef(path);
@@ -227,7 +192,7 @@ function pushData(path, data) {
 /**
  * Get data once from a database path
  * @param {string} path - Database path
- * @return {Promise} - Promise that resolves with the data
+ * @returns {Promise<Object>} Promise that resolves with the data
  */
 function getData(path) {
   const ref = getDatabaseRef(path);
@@ -239,7 +204,7 @@ function getData(path) {
 /**
  * Remove data at a database path
  * @param {string} path - Database path
- * @return {Promise} - Promise that resolves when data is removed
+ * @returns {Promise} Promise that resolves when complete
  */
 function removeData(path) {
   const ref = getDatabaseRef(path);
@@ -249,90 +214,70 @@ function removeData(path) {
 }
 
 /**
- * Get the current user
- * @return {Object|null} - Firebase user object or null if not signed in
- */
-function getCurrentUser() {
-  return auth ? auth.currentUser : null;
-}
-
-/**
- * Get the UID of the current user
- * @return {string|null} - User ID or null if not signed in
- */
-function getCurrentUserId() {
-  const user = getCurrentUser();
-  return user ? user.uid : null;
-}
-
-/**
- * Initialize data structures for a new user
+ * Create a user profile in the database
  * @param {string} userId - User ID
- * @param {Object} userData - User data to store
- * @return {Promise} - Promise that resolves when user is initialized
+ * @param {Object} userData - User data (displayName, email, etc.)
+ * @returns {Promise} Promise that resolves when complete
  */
-function initializeNewUser(userId, userData) {
-  if (!userId) return Promise.reject(new Error("No user ID provided"));
+function createUserProfile(userId, userData) {
+  if (!userId) return Promise.reject(new Error("User ID is required"));
   
   const defaultUserData = {
-    username: userData.username || `Agent${Math.floor(1000 + Math.random() * 9000)}`,
-    email: userData.email || "",
-    avatarId: userData.avatarId || 1,
+    ...userData,
     level: 1,
     xp: 0,
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    createdAt: new Date().toISOString(),
     status: {
       online: true,
-      lastSeen: firebase.database.ServerValue.TIMESTAMP
+      lastSeen: new Date().toISOString()
     },
     stats: {
       gamesPlayed: 0,
       gamesWon: 0,
-      killCount: 0,
-      deathCount: 0,
-      heistsCompleted: 0
+      detectiveWins: 0,
+      infiltratorWins: 0,
+      tasksCompleted: 0,
+      playersOuted: 0
     },
-    achievements: [],
-    friends: [],
-    settings: {
-      notifications: true,
-      theme: "dark",
-      soundEffects: true,
-      music: true
-    }
+    achievements: {}
   };
   
   return setData(`/users/${userId}`, defaultUserData);
 }
 
 /**
- * Check if a user exists in the database
- * @param {string} userId - User ID to check
- * @return {Promise<boolean>} - Promise that resolves with whether user exists
+ * Check if a user profile exists
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Promise that resolves with whether the profile exists
  */
-function checkUserExists(userId) {
+function checkUserProfile(userId) {
   if (!userId) return Promise.resolve(false);
   
   return getData(`/users/${userId}`).then(data => !!data);
 }
 
 /**
- * Update user statistics after a game
- * @param {string} userId - User ID to update
- * @param {Object} stats - Game statistics to update
- * @return {Promise} - Promise that resolves when stats are updated
+ * Update user game stats after a game
+ * @param {string} userId - User ID
+ * @param {Object} gameResults - Game results
+ * @returns {Promise} Promise that resolves when complete
  */
-function updateUserStats(userId, stats) {
-  if (!userId) return Promise.reject(new Error("No user ID provided"));
+function updateUserGameStats(userId, gameResults) {
+  if (!userId) return Promise.reject(new Error("User ID is required"));
   
   // Get current user stats first
   return getData(`/users/${userId}/stats`).then(currentStats => {
     const updatedStats = {
       gamesPlayed: (currentStats?.gamesPlayed || 0) + 1,
-      gamesWon: (currentStats?.gamesWon || 0) + (stats.won ? 1 : 0),
-      killCount: (currentStats?.killCount || 0) + (stats.kills || 0),
-      deathCount: (currentStats?.deathCount || 0) + (stats.died ? 1 : 0),
-      heistsCompleted: (currentStats?.heistsCompleted || 0) + (stats.heistCompleted ? 1 : 0)
+      gamesWon: (currentStats?.gamesWon || 0) + (gameResults.won ? 1 : 0),
+      detectiveWins: (currentStats?.detectiveWins || 0) + 
+        (gameResults.won && gameResults.role === 'detective' ? 1 : 0),
+      infiltratorWins: (currentStats?.infiltratorWins || 0) + 
+        (gameResults.won && gameResults.role === 'infiltrator' ? 1 : 0),
+      tasksCompleted: (currentStats?.tasksCompleted || 0) + 
+        (gameResults.tasksCompleted || 0),
+      playersOuted: (currentStats?.playersOuted || 0) + 
+        (gameResults.playersOuted || 0)
     };
     
     // Update stats
@@ -341,68 +286,63 @@ function updateUserStats(userId, stats) {
 }
 
 /**
- * Add XP to a user
- * @param {string} userId - User ID to update
- * @param {number} xpAmount - Amount of XP to add
- * @return {Promise} - Promise that resolves when XP is added and level is updated
+ * Award XP to a user and handle level up
+ * @param {string} userId - User ID
+ * @param {number} xpAmount - Amount of XP to award
+ * @returns {Promise<Object>} Promise that resolves with level up info
  */
-function addUserXP(userId, xpAmount) {
-  if (!userId || !xpAmount) return Promise.reject(new Error("Invalid parameters"));
+function awardUserXP(userId, xpAmount) {
+  if (!userId) return Promise.reject(new Error("User ID is required"));
+  if (!xpAmount || xpAmount <= 0) return Promise.resolve({ levelUp: false });
   
   // Get current user level and XP
   return getData(`/users/${userId}`).then(userData => {
     if (!userData) return Promise.reject(new Error("User not found"));
     
-    const currentLevel = userData.level || 1;
     const currentXP = userData.xp || 0;
+    const currentLevel = userData.level || 1;
+    
+    // Calculate new XP
     const newXP = currentXP + xpAmount;
     
-    // Calculate if level up occurred
-    let newLevel = currentLevel;
-    let leveledUp = false;
+    // Calculate if level up (simple formula: need level * 100 XP to reach next level)
+    const xpNeededForNextLevel = currentLevel * 100;
+    const newLevel = currentXP < xpNeededForNextLevel && newXP >= xpNeededForNextLevel
+      ? currentLevel + 1
+      : currentLevel;
     
-    // Calculate XP required for next level - formula: 100 * level^2
-    const nextLevelXP = 100 * Math.pow(currentLevel + 1, 2);
-    
-    // Check if user leveled up
-    if (newXP >= nextLevelXP) {
-      // Find the appropriate level for the new XP amount
-      while (100 * Math.pow(newLevel + 1, 2) <= newXP) {
-        newLevel++;
-      }
-      leveledUp = true;
-    }
+    const levelUp = newLevel > currentLevel;
     
     // Update user data
     return updateData(`/users/${userId}`, {
       xp: newXP,
       level: newLevel
-    }).then(() => ({
-      leveledUp,
-      oldLevel: currentLevel,
-      newLevel,
-      newXP
-    }));
+    }).then(() => {
+      return {
+        levelUp,
+        newLevel,
+        newXP,
+        xpAwarded: xpAmount
+      };
+    });
   });
 }
 
 /**
- * Create a new game session in the database
- * @param {Object} sessionData - Game session data
- * @return {Promise} - Promise that resolves with the new session ID
+ * Create a new game session
+ * @param {Object} sessionData - Session data
+ * @returns {Promise<string>} Promise that resolves with session ID
  */
 function createGameSession(sessionData) {
-  if (!sessionData) return Promise.reject(new Error("No session data provided"));
+  if (!sessionData) return Promise.reject(new Error("Session data is required"));
   
-  // Add creation timestamp and initial state
   const enhancedData = {
     ...sessionData,
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    lastUpdated: firebase.database.ServerValue.TIMESTAMP,
+    createdAt: new Date().toISOString(),
+    lastUpdated: new Date().toISOString(),
     status: 'waiting'
   };
   
-  // Create the session
   return pushData('/gameSessions', enhancedData).then(ref => {
     // Return the new session ID
     return ref.key;
@@ -410,20 +350,19 @@ function createGameSession(sessionData) {
 }
 
 /**
- * Join a player to a game session
- * @param {string} sessionId - Session ID to join
- * @param {string} userId - User ID joining the session
- * @return {Promise} - Promise that resolves when player is added
+ * Join a game session
+ * @param {string} sessionId - Session ID
+ * @param {string} userId - User ID
+ * @returns {Promise} Promise that resolves when complete
  */
 function joinGameSession(sessionId, userId) {
-  if (!sessionId || !userId) {
-    return Promise.reject(new Error("Invalid session or user ID"));
-  }
+  if (!sessionId) return Promise.reject(new Error("Session ID is required"));
+  if (!userId) return Promise.reject(new Error("User ID is required"));
   
   // Add player to session players list
   return pushData(`/gameSessions/${sessionId}/players`, {
     userId,
-    joinedAt: firebase.database.ServerValue.TIMESTAMP,
+    joinedAt: new Date().toISOString(),
     ready: false
   }).then(() => {
     // Also update user's current session
@@ -435,20 +374,19 @@ function joinGameSession(sessionId, userId) {
 
 /**
  * Leave a game session
- * @param {string} sessionId - Session ID to leave
- * @param {string} userId - User ID leaving the session
- * @return {Promise} - Promise that resolves when player is removed
+ * @param {string} sessionId - Session ID
+ * @param {string} userId - User ID
+ * @returns {Promise} Promise that resolves when complete
  */
 function leaveGameSession(sessionId, userId) {
-  if (!sessionId || !userId) {
-    return Promise.reject(new Error("Invalid session or user ID"));
-  }
+  if (!sessionId) return Promise.reject(new Error("Session ID is required"));
+  if (!userId) return Promise.reject(new Error("User ID is required"));
   
   // First find the player entry in the session
   return getData(`/gameSessions/${sessionId}/players`).then(players => {
     if (!players) return Promise.reject(new Error("Session not found"));
     
-    // Find the player's entry key
+    // Find the key for this user
     let playerKey = null;
     Object.keys(players).forEach(key => {
       if (players[key].userId === userId) {
@@ -456,7 +394,7 @@ function leaveGameSession(sessionId, userId) {
       }
     });
     
-    if (!playerKey) return Promise.reject(new Error("Player not in session"));
+    if (!playerKey) return Promise.reject(new Error("Player not found in session"));
     
     // Remove player from session
     return removeData(`/gameSessions/${sessionId}/players/${playerKey}`).then(() => {
@@ -468,30 +406,16 @@ function leaveGameSession(sessionId, userId) {
   });
 }
 
-// Export functions to make them available globally
-window.FirebaseService = {
-  initializeFirebase,
-  addRealtimeListener,
-  removeRealtimeListener,
-  removeAllListeners,
-  getDatabaseRef,
-  setData,
-  updateData,
-  pushData,
-  getData,
-  removeData,
-  getCurrentUser,
-  getCurrentUserId,
-  initializeNewUser,
-  checkUserExists,
-  updateUserStats,
-  addUserXP,
-  createGameSession,
-  joinGameSession,
-  leaveGameSession
-};
-
 // Initialize Firebase when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
   initializeFirebase();
-}); 
+});
+
+// Export the Firebase services and functions
+export { 
+  app, analytics, db, database, auth, storage,
+  addRealtimeListener, getDatabaseRef, setData, updateData,
+  pushData, getData, removeData, createUserProfile,
+  checkUserProfile, updateUserGameStats, awardUserXP,
+  createGameSession, joinGameSession, leaveGameSession
+}; 
