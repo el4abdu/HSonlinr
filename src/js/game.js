@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingScreen = document.querySelector('.loading-screen');
     const loadingProgress = document.querySelector('.loading-progress');
     const loadingPercentage = document.querySelector('.loading-percentage');
+    const loadingText = document.querySelector('.loading-text');
+    const logoImage = document.querySelector('.logo-large');
+    
+    // Other UI elements
     const navLinks = document.querySelectorAll('.nav-link');
     const pageContents = document.querySelectorAll('.page-content');
     const gameModals = document.querySelectorAll('.modal');
@@ -48,15 +52,48 @@ document.addEventListener('DOMContentLoaded', () => {
         "Use the environment to your advantage. Create distractions to slip past guards unnoticed."
     ];
     
+    // Flag to track if the logo image has loaded
+    let logoLoaded = false;
+    
+    // Track preloaded assets
+    const preloadedAssets = {
+        images: 0,
+        total: 1 // Start with at least logo
+    };
+    
     /**
      * Initialize the game interface
      */
     function initGame() {
+        // Initialize loading screen
+        if (loadingScreen) {
+            loadingScreen.style.display = 'flex';
+        }
+        
+        // Preload critical assets
+        preloadGameAssets();
+        
+        // Setup logo loading
+        if (logoImage) {
+            if (logoImage.complete) {
+                logoLoaded = true;
+                updateLoadingProgress();
+            } else {
+                logoImage.onload = () => {
+                    logoLoaded = true;
+                    preloadedAssets.images++;
+                    updateLoadingProgress();
+                };
+                logoImage.onerror = () => {
+                    console.error('Failed to load logo image');
+                    logoLoaded = true; // Continue anyway
+                    updateLoadingProgress();
+                };
+            }
+        }
+        
         // Load game state
         loadPlayerData();
-        
-        // Simulate loading
-        simulateLoading();
         
         // Setup event listeners
         setupEventListeners();
@@ -70,26 +107,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * Simulate loading progress
+     * Preload game assets
      */
-    function simulateLoading() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 10;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                    }, 500);
-                }, 500);
-            }
-            loadingProgress.style.width = `${progress}%`;
-            loadingPercentage.textContent = `${Math.floor(progress)}%`;
-        }, 200);
+    function preloadGameAssets() {
+        // Avatars to preload
+        const avatarsToPreload = [
+            'src/images/avatars/avatar1.png',
+            'src/images/avatars/avatar3.png',
+            'src/images/avatars/avatar5.png',
+            'src/images/avatars/avatar7.png',
+            'src/images/avatars/avatar8.png',
+            'src/images/avatars/avatar12.png'
+        ];
+        
+        // Maps to preload
+        const mapsToPreload = [
+            'src/images/maps/bank.jpg',
+            'src/images/maps/mansion.jpg',
+            'src/images/maps/casino.jpg',
+            'src/images/maps/lab.jpg'
+        ];
+        
+        // Update total count
+        preloadedAssets.total += avatarsToPreload.length + mapsToPreload.length;
+        
+        // Preload avatars
+        avatarsToPreload.forEach(src => {
+            const img = new Image();
+            img.onload = () => {
+                preloadedAssets.images++;
+                updateLoadingProgress();
+            };
+            img.onerror = () => {
+                console.error(`Failed to load avatar: ${src}`);
+                preloadedAssets.images++; // Count anyway to continue loading
+                updateLoadingProgress();
+            };
+            img.src = src;
+        });
+        
+        // Preload maps
+        mapsToPreload.forEach(src => {
+            const img = new Image();
+            img.onload = () => {
+                preloadedAssets.images++;
+                updateLoadingProgress();
+            };
+            img.onerror = () => {
+                console.error(`Failed to load map: ${src}`);
+                preloadedAssets.images++; // Count anyway to continue loading
+                updateLoadingProgress();
+            };
+            img.src = src;
+        });
     }
+    
+    /**
+     * Update loading progress based on assets loaded
+     */
+    function updateLoadingProgress() {
+        // Calculate progress percentage
+        const progress = Math.min(100, Math.floor((preloadedAssets.images / preloadedAssets.total) * 100));
+        
+        // Update UI
+        if (loadingProgress) loadingProgress.style.width = `${progress}%`;
+        if (loadingPercentage) loadingPercentage.textContent = `${progress}%`;
+        
+        // When loading is complete or after 5 seconds max, proceed anyway
+        if (progress >= 100) {
+            completeLoading();
+        }
+    }
+    
+    /**
+     * Complete loading and hide loading screen
+     */
+    function completeLoading() {
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                if (loadingScreen) loadingScreen.style.display = 'none';
+            }, 500);
+        }
+    }
+    
+    // Add a safety timeout to ensure loading screen doesn't get stuck
+    setTimeout(() => {
+        // If we're still showing loading after 5 seconds, force complete
+        if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+            console.log("Loading timeout reached, completing loading process");
+            completeLoading();
+        }
+    }, 5000);
     
     /**
      * Load player data from Firebase
