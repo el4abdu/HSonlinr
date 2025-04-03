@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="src/css/game.css">
     <link rel="stylesheet" href="src/css/logo.css">
     <link rel="stylesheet" href="src/css/player-levels.css">
+    <link rel="stylesheet" href="src/css/auth.css">
     
     <!-- Clerk Authentication -->
     <script data-clerk-publishable-key="pk_test_Z2VuZXJvdXMtcXVhZ2dhLTI4LmNsZXJrLmFjY291bnRzLmRldiQ" 
@@ -24,14 +25,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
     
-    <!-- Game Configuration -->
+    <!-- Game Configuration - Load first -->
     <script src="src/js/config.js"></script>
 </head>
 <body class="dark-theme">
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="logo-container">
-            <div class="game-logo">
+            <div class="game-logo animated">
                 <span class="logo-shadow">SHADOW</span>
                 <span class="logo-heist">HEIST</span>
                 <span class="logo-online">ONLINE</span>
@@ -192,7 +193,7 @@
                         </ul>
                     </div>
                     
-                    <button class="start-mission-button">START MISSION</button>
+                    <button class="start-mission-button gameplay-button">START MISSION</button>
                 </div>
             </div>
             
@@ -216,7 +217,7 @@
                         </ul>
                     </div>
                     
-                    <button class="start-mission-button">START MISSION</button>
+                    <button class="start-mission-button gameplay-button">START MISSION</button>
                 </div>
             </div>
             
@@ -240,7 +241,7 @@
                         </ul>
                     </div>
                     
-                    <button class="start-mission-button">START MISSION</button>
+                    <button class="start-mission-button gameplay-button">START MISSION</button>
                 </div>
             </div>
             
@@ -250,201 +251,126 @@
                 
                 <div class="location-content">
                     <div class="location-description">
-                        <p>Infiltrate a high-security research facility to steal experimental technology and scientific data.</p>
+                        <p>Break into a high-security research facility to steal experimental tech.</p>
                     </div>
                     
                     <div class="mission-objectives">
                         <h3>OBJECTIVES</h3>
                         <ul>
-                            <li>Bypass advanced security systems</li>
-                            <li>Navigate through laser grids</li>
-                            <li>Hack the central computer</li>
-                            <li>Retrieve the prototype</li>
+                            <li>Bypass advanced security measures</li>
+                            <li>Locate the experimental lab</li>
+                            <li>Neutralize robotic guards</li>
+                            <li>Secure the prototype</li>
                             <li>Escape before lockdown</li>
                         </ul>
                     </div>
                     
-                    <button class="start-mission-button">START MISSION</button>
+                    <button class="start-mission-button gameplay-button">START MISSION</button>
                 </div>
             </div>
             
-            <!-- Profile Screen -->
-            <div id="profile-screen" class="profile-screen" style="display: none;">
-                <h2 class="section-title">AGENT PROFILE</h2>
-                <button class="back-button" data-target="map"><i class="fas fa-arrow-left"></i> Back to Map</button>
+            <!-- Lobby Screen (For Game Setup) -->
+            <div id="lobby-screen" class="lobby-screen" style="display: none;">
+                <h2 class="section-title">MISSION LOBBY</h2>
+                <button class="back-button" data-target="map"><i class="fas fa-arrow-left"></i> Cancel</button>
                 
-                <div class="profile-content">
-                    <div class="profile-header">
-                        <div class="profile-avatar-section">
-                            <div class="player-avatar avatar avatar-default" id="profile-avatar"></div>
-                            <h3 id="profile-name">Agent</h3>
+                <div class="lobby-content">
+                    <div class="lobby-info">
+                        <h3 id="lobby-mission-name">MISSION NAME</h3>
+                        <p id="lobby-mission-desc">Mission description will appear here.</p>
+                    </div>
+                    
+                    <div class="lobby-settings">
+                        <div class="setting-group">
+                            <label>Difficulty</label>
+                            <div class="setting-options">
+                                <button class="difficulty-option selected" data-difficulty="easy">Easy</button>
+                                <button class="difficulty-option" data-difficulty="normal">Normal</button>
+                                <button class="difficulty-option" data-difficulty="hard">Hard</button>
+                            </div>
                         </div>
                         
-                        <div class="profile-stats">
-                            <div class="stat-box">
-                                <span class="stat-title">LEVEL</span>
-                                <span id="profile-level" class="stat-number">1</span>
+                        <div class="setting-group">
+                            <label>Game Mode</label>
+                            <div class="setting-options">
+                                <button class="mode-option selected" data-mode="classic">Classic</button>
+                                <button class="mode-option" data-mode="timed">Timed</button>
+                                <button class="mode-option" data-mode="stealth">Stealth</button>
                             </div>
-                            <div class="stat-box">
-                                <span class="stat-title">XP</span>
-                                <span id="profile-xp" class="stat-number">0</span>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label>Privacy</label>
+                            <div class="setting-options">
+                                <button class="privacy-option selected" data-privacy="public">Public</button>
+                                <button class="privacy-option" data-privacy="private">Private</button>
                             </div>
-                            <div class="stat-box">
-                                <span class="stat-title">FUNDS</span>
-                                <span id="profile-currency" class="stat-number">$500</span>
+                        </div>
+                        
+                        <div class="setting-group" id="private-code-group" style="display: none;">
+                            <label>Invite Code</label>
+                            <div class="code-container">
+                                <input type="text" id="private-code" readonly>
+                                <button id="copy-code" class="btn-icon"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="profile-section">
-                        <h3>AVATAR SELECTION</h3>
-                        <div class="avatar-selection">
-                            <div class="avatar-option selected" data-avatar="default">
-                                <div class="avatar avatar-default"></div>
-                            </div>
-                            <div class="avatar-option" data-avatar="1">
-                                <div class="avatar avatar-1"></div>
-                            </div>
-                            <div class="avatar-option" data-avatar="2">
-                                <div class="avatar avatar-2"></div>
-                            </div>
-                            <div class="avatar-option" data-avatar="3">
-                                <div class="avatar avatar-3"></div>
-                            </div>
-                            <div class="avatar-option" data-avatar="4">
-                                <div class="avatar avatar-4"></div>
-                            </div>
-                            <div class="avatar-option" data-avatar="5">
-                                <div class="avatar avatar-5"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-section">
-                        <h3>SKILLS</h3>
-                        <div class="skills-grid">
-                            <div class="skill-item">
-                                <div class="skill-icon"><i class="fas fa-key"></i></div>
-                                <div class="skill-details">
-                                    <h4>LOCKPICKING</h4>
-                                    <div class="skill-level">
-                                        <div class="skill-progress-bar">
-                                            <div class="skill-progress" style="width: 20%"></div>
-                                        </div>
-                                        <span id="lockpicking-level">Lv.1</span>
-                                    </div>
+                    <div class="lobby-players">
+                        <h3>PLAYERS (1/6)</h3>
+                        <div class="player-slots">
+                            <div class="player-slot filled">
+                                <div class="player-avatar avatar avatar-1"></div>
+                                <div class="player-info">
+                                    <div class="player-name">You</div>
+                                    <div class="player-status">Ready</div>
+                                </div>
+                                <div class="player-ready ready">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
                             </div>
                             
-                            <div class="skill-item">
-                                <div class="skill-icon"><i class="fas fa-laptop-code"></i></div>
-                                <div class="skill-details">
-                                    <h4>HACKING</h4>
-                                    <div class="skill-level">
-                                        <div class="skill-progress-bar">
-                                            <div class="skill-progress" style="width: 20%"></div>
-                                        </div>
-                                        <span id="hacking-level">Lv.1</span>
-                                    </div>
+                            <div class="player-slot">
+                                <div class="player-avatar avatar avatar-empty"></div>
+                                <div class="player-info">
+                                    <div class="player-name">Waiting for player...</div>
                                 </div>
                             </div>
                             
-                            <div class="skill-item">
-                                <div class="skill-icon"><i class="fas fa-user-ninja"></i></div>
-                                <div class="skill-details">
-                                    <h4>STEALTH</h4>
-                                    <div class="skill-level">
-                                        <div class="skill-progress-bar">
-                                            <div class="skill-progress" style="width: 20%"></div>
-                                        </div>
-                                        <span id="stealth-level">Lv.1</span>
-                                    </div>
+                            <div class="player-slot">
+                                <div class="player-avatar avatar avatar-empty"></div>
+                                <div class="player-info">
+                                    <div class="player-name">Waiting for player...</div>
                                 </div>
                             </div>
                             
-                            <div class="skill-item">
-                                <div class="skill-icon"><i class="fas fa-fist-raised"></i></div>
-                                <div class="skill-details">
-                                    <h4>COMBAT</h4>
-                                    <div class="skill-level">
-                                        <div class="skill-progress-bar">
-                                            <div class="skill-progress" style="width: 20%"></div>
-                                        </div>
-                                        <span id="combat-level">Lv.1</span>
-                                    </div>
+                            <div class="player-slot">
+                                <div class="player-avatar avatar avatar-empty"></div>
+                                <div class="player-info">
+                                    <div class="player-name">Waiting for player...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="player-slot">
+                                <div class="player-avatar avatar avatar-empty"></div>
+                                <div class="player-info">
+                                    <div class="player-name">Waiting for player...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="player-slot">
+                                <div class="player-avatar avatar avatar-empty"></div>
+                                <div class="player-info">
+                                    <div class="player-name">Waiting for player...</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="profile-section">
-                        <h3>STATISTICS</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-label">Heists Completed</span>
-                                <span id="stats-heists" class="stat-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Wins</span>
-                                <span id="stats-wins" class="stat-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Losses</span>
-                                <span id="stats-losses" class="stat-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Items Collected</span>
-                                <span id="stats-items" class="stat-value">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Settings Screen -->
-            <div id="settings-screen" class="settings-screen" style="display: none;">
-                <h2 class="section-title">SETTINGS</h2>
-                <button class="back-button" data-target="map"><i class="fas fa-arrow-left"></i> Back to Map</button>
-                
-                <div class="settings-content">
-                    <div class="settings-section">
-                        <h3>GAME SETTINGS</h3>
-                        
-                        <div class="setting-item">
-                            <span class="setting-label">Sound Effects</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="sound-toggle" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <span class="setting-label">Music</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="music-toggle" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <span class="setting-label">Dark Theme</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="theme-toggle" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h3>ACCOUNT SETTINGS</h3>
-                        
-                        <div class="setting-item">
-                            <span class="setting-label">Connected Account</span>
-                            <span id="account-email" class="setting-value">user@example.com</span>
-                        </div>
-                        
-                        <button id="change-password-btn" class="settings-button">Change Password</button>
-                        <button id="delete-account-btn" class="settings-button danger-button">Delete Account</button>
+                    <div class="lobby-actions">
+                        <button id="toggle-ready" class="btn btn-primary">READY</button>
+                        <button id="start-game" class="btn btn-accent" disabled>START GAME (1/6)</button>
+                        <p class="lobby-note">Need 3-6 players to start a game</p>
                     </div>
                 </div>
             </div>
@@ -452,131 +378,194 @@
         
         <!-- Footer -->
         <footer class="game-footer">
-            <div class="footer-links">
-                <a href="#" class="footer-link">About</a>
-                <a href="#" class="footer-link">Privacy</a>
-                <a href="#" class="footer-link">Terms</a>
-                <a href="#" class="footer-link">Contact</a>
-            </div>
-            <div class="copyright">
-                © 2024 Shadow Heist Online. All rights reserved.
+            <div class="footer-copyright">
+                <p>&copy; 2025 Shadow Heist Online</p>
             </div>
         </footer>
     </div>
     
-    <!-- Game Scripts -->
-    <script src="src/js/firebase-service.js"></script>
-    <script src="src/js/auth.js"></script>
-    <script src="src/js/game.js"></script>
+    <!-- Modals -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <h3>Game Settings</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Theme</span>
+                        <div class="setting-control">
+                            <button id="theme-toggle" class="toggle-button">
+                                <span class="toggle-option">Light</span>
+                                <span class="toggle-switch"></span>
+                                <span class="toggle-option">Dark</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Sound Effects</span>
+                        <div class="setting-control">
+                            <button id="sound-toggle" class="toggle-button active">
+                                <span class="toggle-option">Off</span>
+                                <span class="toggle-switch"></span>
+                                <span class="toggle-option">On</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Music</span>
+                        <div class="setting-control">
+                            <button id="music-toggle" class="toggle-button active">
+                                <span class="toggle-option">Off</span>
+                                <span class="toggle-switch"></span>
+                                <span class="toggle-option">On</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Account Settings</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Display Name</span>
+                        <div class="setting-control">
+                            <input type="text" id="display-name-input" class="form-input">
+                            <button id="update-name" class="btn btn-sm btn-primary">Update</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Avatar</span>
+                        <div class="setting-control avatar-selection">
+                            <div class="avatar avatar-1" data-avatar="1"></div>
+                            <div class="avatar avatar-2" data-avatar="2"></div>
+                            <div class="avatar avatar-3" data-avatar="3"></div>
+                            <div class="avatar avatar-4" data-avatar="4"></div>
+                            <div class="avatar avatar-5" data-avatar="5"></div>
+                            <div class="avatar avatar-6" data-avatar="6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-save">Save Changes</button>
+            </div>
+        </div>
+    </div>
     
-    <script>
-        // Handle user menu dropdown
-        document.addEventListener('DOMContentLoaded', function() {
-            const userAvatar = document.getElementById('user-avatar');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            
-            if (userAvatar && dropdownMenu) {
-                userAvatar.addEventListener('click', function() {
-                    dropdownMenu.classList.toggle('active');
-                });
+    <div id="profile-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Player Profile</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-header">
+                    <div class="profile-avatar avatar avatar-1"></div>
+                    <div class="profile-info">
+                        <h3 id="profile-name">Player Name</h3>
+                        <div class="profile-id">ID: <span id="profile-id-display">XYZ12345</span></div>
+                        <div class="level-display">
+                            <div class="level-badge">
+                                <span class="level-number">1</span>
+                            </div>
+                            <div class="level-progress">
+                                <div class="level-bar">
+                                    <div class="level-fill" style="width: 45%"></div>
+                                </div>
+                                <div class="level-text">
+                                    <span class="xp-text">450/1000 XP</span>
+                                    <span class="next-level">Next: Level 2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (!event.target.closest('.user-menu')) {
-                        dropdownMenu.classList.remove('active');
-                    }
-                });
-            }
-            
-            // Handle menu options
-            const profileOption = document.getElementById('profile-option');
-            const settingsOption = document.getElementById('settings-option');
-            const logoutButton = document.getElementById('logout-button');
-            const loginButton = document.getElementById('login-button');
-            const signupButton = document.getElementById('signup-button');
-            
-            if (profileOption) {
-                profileOption.addEventListener('click', function() {
-                    showScreen('profile-screen');
-                });
-            }
-            
-            if (settingsOption) {
-                settingsOption.addEventListener('click', function() {
-                    showScreen('settings-screen');
-                });
-            }
-            
-            if (logoutButton) {
-                logoutButton.addEventListener('click', function() {
-                    if (window.Clerk) {
-                        window.Clerk.signOut();
-                    } else if (firebase) {
-                        firebase.auth().signOut();
-                    }
-                });
-            }
-            
-            if (loginButton) {
-                loginButton.addEventListener('click', function() {
-                    if (window.Clerk) {
-                        window.Clerk.openSignIn();
-                    }
-                });
-            }
-            
-            if (signupButton) {
-                signupButton.addEventListener('click', function() {
-                    if (window.Clerk) {
-                        window.Clerk.openSignUp();
-                    }
-                });
-            }
-            
-            // Back buttons
-            const backButtons = document.querySelectorAll('.back-button');
-            backButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const target = this.getAttribute('data-target');
-                    if (target) {
-                        showScreen(target + '-screen');
-                    }
-                });
-            });
-            
-            // Function to show a specific screen
-            function showScreen(screenId) {
-                const screens = document.querySelectorAll('.map-screen, .location-screen, .profile-screen, .settings-screen');
-                screens.forEach(screen => {
-                    screen.style.display = 'none';
-                });
+                <div class="profile-stats">
+                    <h3>Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="games-played">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="games-won">0</div>
+                            <div class="stat-label">Games Won</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="win-ratio">0%</div>
+                            <div class="stat-label">Win Ratio</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="tasks-completed">0</div>
+                            <div class="stat-label">Tasks Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="traitor-wins">0</div>
+                            <div class="stat-label">Traitor Wins</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="civilian-wins">0</div>
+                            <div class="stat-label">Civilian Wins</div>
+                        </div>
+                    </div>
+                </div>
                 
-                const targetScreen = document.getElementById(screenId);
-                if (targetScreen) {
-                    targetScreen.style.display = 'block';
-                }
-            }
-            
-            // Update login/logout buttons based on auth status
-            function updateAuthButtons() {
-                const isLoggedIn = (window.Clerk && window.Clerk.user) || (firebase && firebase.auth().currentUser);
-                
-                if (loginButton) loginButton.style.display = isLoggedIn ? 'none' : 'block';
-                if (signupButton) signupButton.style.display = isLoggedIn ? 'none' : 'block';
-                if (logoutButton) logoutButton.style.display = isLoggedIn ? 'block' : 'none';
-                if (profileOption) profileOption.style.display = isLoggedIn ? 'block' : 'none';
-            }
-            
-            // Check auth status when loaded
-            if (window.Clerk) {
-                window.Clerk.addListener(updateAuthButtons);
-            } else if (firebase) {
-                firebase.auth().onAuthStateChanged(updateAuthButtons);
-            }
-            
-            // Initial check
-            setTimeout(updateAuthButtons, 1000);
-        });
-    </script>
+                <div class="profile-achievements">
+                    <h3>Achievements</h3>
+                    <div class="achievements-grid">
+                        <div class="achievement locked">
+                            <div class="achievement-icon"><i class="fas fa-user-secret"></i></div>
+                            <div class="achievement-info">
+                                <div class="achievement-name">Perfect Infiltration</div>
+                                <div class="achievement-desc">Win as a traitor without being suspected</div>
+                            </div>
+                        </div>
+                        <div class="achievement">
+                            <div class="achievement-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="achievement-info">
+                                <div class="achievement-name">Task Master</div>
+                                <div class="achievement-desc">Complete 50 tasks</div>
+                            </div>
+                        </div>
+                        <div class="achievement locked">
+                            <div class="achievement-icon"><i class="fas fa-crown"></i></div>
+                            <div class="achievement-info">
+                                <div class="achievement-name">Champion</div>
+                                <div class="achievement-desc">Win 10 games</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-game-modal" class="modal" style="display: none;">
+        <div class="modal-content loading-game-content">
+            <div class="loading-animation">
+                <div class="loading-spinner"></div>
+            </div>
+            <h3 class="loading-title">Loading Game</h3>
+            <p class="loading-message">Preparing mission...</p>
+        </div>
+    </div>
+    
+    <!-- Firebase Services JS -->
+    <script src="src/js/firebase-service.js"></script>
+    
+    <!-- Authentication JS -->
+    <script src="src/js/auth.js"></script>
+    
+    <!-- Game JS -->
+    <script src="src/js/game.js"></script>
+    <script src="src/js/main.js"></script>
+    
+    <!-- Other Game Components -->
+    <script src="src/js/player-levels.js"></script>
+    <script src="src/js/chat.js"></script>
+    <script src="src/js/role-assignment.js"></script>
 </body>
 </html> 
