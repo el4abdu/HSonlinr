@@ -13,7 +13,8 @@ const config = {
         storageBucket: "hsonline-2d022.firebasestorage.app",
         messagingSenderId: "790135168815",
         appId: "1:790135168815:web:e43ab3e10c2263c9398bda",
-        measurementId: "G-ZP1ZXJ8XW3"
+        measurementId: "G-ZP1ZXJ8XW3",
+        databaseURL: "https://hsonline-2d022-default-rtdb.firebaseio.com"
     },
     
     // Clerk Configuration
@@ -220,18 +221,29 @@ const config = {
     }
 };
 
-// Initialize Clerk
+// Initialize Clerk if the script is already loaded
 function initClerk() {
     if (window.Clerk) {
         window.Clerk.load({
-            // Use the publishable key from config
-            publishableKey: config.CLERK_PUBLISHABLE_KEY
+            publishableKey: config.CLERK_PUBLISHABLE_KEY,
+            // When a user signs in or up, stay on the current page and refresh
+            afterSignIn: () => {
+                window.location.reload();
+            },
+            afterSignUp: () => {
+                window.location.reload();
+            }
         });
     }
 }
 
-// Export config
+// Make configuration available globally
 window.config = config;
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+}
 
 // Initialize Clerk
 function initializeClerk() {
@@ -243,20 +255,6 @@ function initializeClerk() {
     window.Clerk.load({
         publishableKey: config.CLERK_PUBLISHABLE_KEY
     });
-}
-
-// Export for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        config,
-        CLERK_PUBLISHABLE_KEY: config.CLERK_PUBLISHABLE_KEY,
-        ACHIEVEMENTS: config.ACHIEVEMENTS,
-        FEATURES: config.FEATURES,
-        ROLES: config.ROLES,
-        PHASES: config.PHASES,
-        SETTINGS: config.SETTINGS,
-        ASSETS: config.ASSETS
-    };
 }
 
 // Initialize when loaded

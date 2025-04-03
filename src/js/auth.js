@@ -149,11 +149,7 @@ function handleAuthStateChange(user) {
         console.log(`User is signed in: ${user.id}`);
         currentUser = user;
         
-        // If on login page, redirect to game
-        if (isLoginPage() || isRegisterPage()) {
-            window.location.href = LOGIN_URL;
-            return;
-        }
+        // No need to redirect - we're using the same page for everything now
         
         // Check if user has a profile in our database
         checkUserProfile(user);
@@ -162,12 +158,7 @@ function handleAuthStateChange(user) {
         console.log("User is signed out");
         currentUser = null;
         
-        // If not on login page, redirect to login
-        if (!isLoginPage() && !isRegisterPage()) {
-            redirectToLogin();
-            return;
-        }
-        
+        // No need to redirect - we'll show the login modal when needed
         markAuthInitialized();
     }
 }

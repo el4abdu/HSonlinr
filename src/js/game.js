@@ -96,8 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function loadPlayerData() {
         if (!firebase.auth().currentUser) {
-            // If not logged in, redirect to login page
-            window.location.href = 'login.html?reason=auth-required';
+            // If not logged in, show the Clerk sign-in modal instead of redirecting
+            if (window.Clerk) {
+                window.Clerk.openSignIn();
+            }
             return;
         }
         

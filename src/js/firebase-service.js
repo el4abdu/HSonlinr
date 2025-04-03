@@ -151,19 +151,32 @@ const FirebaseService = (function() {
     }
     
     /**
-     * Get current user ID from AuthSystem
+     * Get current user ID from firebase auth
      * @return {string|null} - Current user ID or null
      */
     function getCurrentUserId() {
-        return window.AuthSystem?.getCurrentUserId() || null;
+        const firebaseUser = firebase.auth().currentUser;
+        if (firebaseUser) {
+            return firebaseUser.uid;
+        }
+        
+        // Fall back to Clerk if available
+        const clerkUser = window.Clerk?.user;
+        return clerkUser ? clerkUser.id : null;
     }
     
     /**
-     * Get current user from AuthSystem
+     * Get current user from firebase auth
      * @return {Object|null} - Current user or null
      */
     function getCurrentUser() {
-        return window.AuthSystem?.getCurrentUser() || null;
+        const firebaseUser = firebase.auth().currentUser;
+        if (firebaseUser) {
+            return firebaseUser;
+        }
+        
+        // Fall back to Clerk if available
+        return window.Clerk?.user || null;
     }
     
     /**

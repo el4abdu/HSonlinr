@@ -472,6 +472,7 @@
 
     <!-- Script Files -->
     <script src="src/js/config.js"></script>
+    <script src="src/js/firebase-service.js"></script>
     <script src="src/js/auth.js"></script>
     <script src="src/js/game.js"></script>
     <script src="src/js/dashboard.js"></script>
@@ -479,9 +480,15 @@
     <!-- Auth Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Firebase service first
+            if (window.FirebaseService) {
+                FirebaseService.init();
+            }
+            
             // Initialize login/signup buttons
             const loginButton = document.getElementById('login-button');
             const signupButton = document.getElementById('signup-button');
+            const logoutButton = document.getElementById('logout-button');
             
             if (loginButton) {
                 loginButton.addEventListener('click', (e) => {
