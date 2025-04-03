@@ -7,17 +7,17 @@
 const config = {
     // Firebase Configuration
     FIREBASE_CONFIG: {
-        apiKey: "YOUR_FIREBASE_API_KEY",
-        authDomain: "your-app.firebaseapp.com",
-        databaseURL: "https://your-app.firebaseio.com",
-        projectId: "your-app",
-        storageBucket: "your-app.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
+        apiKey: "AIzaSyBUKyRMxw2TI1KeUt0SjE5mdh1gJozcgkg",
+        authDomain: "hsonline-2d022.firebaseapp.com",
+        projectId: "hsonline-2d022",
+        storageBucket: "hsonline-2d022.firebasestorage.app",
+        messagingSenderId: "790135168815",
+        appId: "1:790135168815:web:e43ab3e10c2263c9398bda",
+        measurementId: "G-ZP1ZXJ8XW3"
     },
     
     // Clerk Configuration
-    CLERK_PUBLISHABLE_KEY: "pk_test_YOUR_CLERK_PUBLISHABLE_KEY",
+    CLERK_PUBLISHABLE_KEY: "pk_test_Z2VuZXJvdXMtcXVhZ2dhLTI4LmNsZXJrLmFjY291bnRzLmRldiQ",
     
     // Game Features
     FEATURES: {
