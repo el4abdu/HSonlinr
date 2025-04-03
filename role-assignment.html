@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Heist - Role Assignment</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/role-assignment.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Clerk SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4.66.3/dist/clerk.browser.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="role-assignment-container">
+            <div class="role-assignment-header">
+                <h1>Your Role</h1>
+            </div>
+            
+            <div class="role-card">
+                <div class="role-emblem">
+                    <div class="role-icon" id="role-icon"></div>
+                </div>
+                
+                <div class="role-info">
+                    <h2 class="role-name" id="role-name">Loading...</h2>
+                    <div class="role-type" id="role-type">
+                        <span class="role-badge" id="role-badge">Unknown</span>
+                    </div>
+                    <p class="role-description" id="role-description">
+                        Please wait while your role is being assigned...
+                    </p>
+                </div>
+                
+                <div class="role-abilities">
+                    <h3>Abilities</h3>
+                    <ul id="role-abilities">
+                        <li class="ability-item placeholder">
+                            <div class="ability-icon placeholder"></div>
+                            <div class="ability-info">
+                                <div class="ability-name placeholder"></div>
+                                <div class="ability-desc placeholder"></div>
+                            </div>
+                        </li>
+                        <li class="ability-item placeholder">
+                            <div class="ability-icon placeholder"></div>
+                            <div class="ability-info">
+                                <div class="ability-name placeholder"></div>
+                                <div class="ability-desc placeholder"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="role-tips">
+                    <h3>Tips</h3>
+                    <ul id="role-tips">
+                        <li class="tip placeholder"></li>
+                        <li class="tip placeholder"></li>
+                        <li class="tip placeholder"></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="role-summary">
+                <div class="team-members" id="team-members">
+                    <!-- For traitors, this will show other traitors -->
+                    <!-- For Master Thief, this will show the one innocent they know -->
+                </div>
+            </div>
+            
+            <div class="role-actions">
+                <button id="ready-btn" class="btn btn-primary">I'm Ready</button>
+            </div>
+            
+            <div class="waiting-indicator" id="waiting-indicator">
+                <p>Waiting for other players to confirm their roles...</p>
+                <div class="players-ready">
+                    <span id="players-ready-count">0</span>/<span id="total-players-count">0</span> players ready
+                </div>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="ready-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script src="src/js/role-assignment.js"></script>
+</body>
+</html> 

@@ -1,0 +1,26 @@
+{
+  "name": "shadow-heist-online",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx serve -s",
+    "dev": "npx serve -s -l 3000"
+  },
+  "keywords": [
+    "game",
+    "online",
+    "shadow-heist",
+    "firebase",
+    "multiplayer"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "A multiplayer online social deduction game with real-time Firebase backend",
+  "dependencies": {
+    "firebase": "^11.6.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

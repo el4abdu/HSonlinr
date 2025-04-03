@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Heist - Results</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/result.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Clerk SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4.66.3/dist/clerk.browser.js"></script>
+</head>
+<body>
+    <div class="results-container">
+        <div class="results-header">
+            <h1>Game Results</h1>
+            <div class="room-info">
+                <span>Room: </span>
+                <span id="room-name">Loading...</span>
+            </div>
+        </div>
+        
+        <div class="winner-banner" id="winner-banner">
+            <!-- Will be filled by JS -->
+        </div>
+        
+        <div class="results-content">
+            <div class="results-section roles-section">
+                <h2>Final Roles</h2>
+                <div class="roles-grid" id="roles-grid">
+                    <!-- Player roles will be added here -->
+                </div>
+            </div>
+            
+            <div class="results-section stats-section">
+                <h2>Game Statistics</h2>
+                <div class="stats-list" id="stats-list">
+                    <!-- Game stats will be added here -->
+                </div>
+                
+                <div class="game-timeline">
+                    <h3>Game Timeline</h3>
+                    <div class="timeline" id="timeline">
+                        <!-- Timeline events will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-actions">
+            <button id="rematch-btn" class="btn btn-primary">Rematch</button>
+            <button id="lobby-btn" class="btn btn-secondary">Back to Lobby</button>
+            <button id="home-btn" class="btn">Exit to Home</button>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script src="src/js/result.js"></script>
+</body>
+</html> 

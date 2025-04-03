@@ -1,0 +1,404 @@
+/* Role Assignment Styles */
+.role-assignment-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    height: 100vh;
+    justify-content: center;
+}
+
+.role-assignment-header h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 10px;
+}
+
+.role-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    width: 100%;
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-areas:
+        "emblem info"
+        "abilities abilities"
+        "tips tips";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 25px;
+}
+
+.role-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2));
+    z-index: 0;
+}
+
+/* Role emblem and icon */
+.role-emblem {
+    grid-area: emblem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 25px;
+}
+
+.role-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 20px rgba(110, 17, 244, 0.4);
+}
+
+/* Default role icons - these would be replaced with actual images */
+.role-icon.master-thief {
+    background-color: #394b9e;
+    background-image: url('../../public/assets/master-thief.png');
+}
+
+.role-icon.hacker {
+    background-color: #1a7a8c;
+    background-image: url('../../public/assets/hacker.png');
+}
+
+.role-icon.infiltrator {
+    background-color: #8c1f1a;
+    background-image: url('../../public/assets/infiltrator.png');
+}
+
+.role-icon.double-agent {
+    background-color: #8c1a5a;
+    background-image: url('../../public/assets/double-agent.png');
+}
+
+.role-icon.civilian {
+    background-color: #5a8c1a;
+    background-image: url('../../public/assets/civilian.png');
+}
+
+/* Role info */
+.role-info {
+    grid-area: info;
+    z-index: 1;
+}
+
+.role-name {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.role-type {
+    margin-bottom: 15px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.role-badge.hero {
+    background: linear-gradient(135deg, #1a3a8c, #1a7a8c);
+    color: white;
+}
+
+.role-badge.traitor {
+    background: linear-gradient(135deg, #8c1a1a, #8c1a5a);
+    color: white;
+}
+
+.role-badge.neutral {
+    background: linear-gradient(135deg, #5a8c1a, #8c7a1a);
+    color: white;
+}
+
+.role-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+/* Role abilities */
+.role-abilities {
+    grid-area: abilities;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    z-index: 1;
+}
+
+.role-abilities h3, .role-tips h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+#role-abilities {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ability-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.ability-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 229, 255, 0.2);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+.ability-info {
+    flex-grow: 1;
+}
+
+.ability-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.ability-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Role tips */
+.role-tips {
+    grid-area: tips;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    z-index: 1;
+}
+
+#role-tips {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.tip {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Role summary (team members information) */
+.role-summary {
+    width: 100%;
+}
+
+.team-members {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.team-members-title {
+    margin-top: 0;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.team-members-list {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 15px;
+    border-radius: 10px;
+}
+
+.team-member-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+}
+
+.team-member-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.team-member-role {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Actions and waiting indicator */
+.role-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#ready-btn {
+    padding: 12px 40px;
+    font-size: 1.1rem;
+}
+
+.waiting-indicator {
+    width: 100%;
+    text-align: center;
+    display: none; /* Hidden by default, shown after player clicks ready */
+}
+
+.waiting-indicator p {
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.players-ready {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.loading-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    width: 0%; /* Will be updated by JS as players get ready */
+    transition: width 0.5s ease;
+}
+
+/* Placeholder styles for loading state */
+.placeholder {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ability-icon.placeholder {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ability-name.placeholder {
+    height: 14px;
+    width: 120px;
+    margin-bottom: 8px;
+}
+
+.ability-desc.placeholder {
+    height: 10px;
+    width: 100%;
+}
+
+.tip.placeholder {
+    height: 12px;
+    width: 90%;
+    margin-bottom: 12px;
+}
+
+.placeholder::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.05) 50%, 
+        rgba(255, 255, 255, 0) 100%);
+    animation: placeholderShimmer 1.5s infinite;
+}
+
+@keyframes placeholderShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .role-card {
+        grid-template-areas:
+            "emblem emblem"
+            "info info"
+            "abilities abilities"
+            "tips tips";
+        padding: 20px;
+    }
+    
+    .role-emblem {
+        padding-right: 0;
+        padding-bottom: 20px;
+    }
+    
+    .role-icon {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .role-name {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    .role-type {
+        text-align: center;
+    }
+    
+    .role-description {
+        text-align: center;
+    }
+} 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Heist - Player Profile</title>
+    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/game.css">
+    <link rel="stylesheet" href="src/css/modern-features.css">
+    <link rel="stylesheet" href="src/css/player-levels.css">
+    <link rel="stylesheet" href="src/css/profile.css">
+    <link rel="stylesheet" href="src/css/logo.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Clerk SDK -->
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_Z2VuZXJvdXMtcXVhZ2dhLTI4LmNsZXJrLmFjY291bnRzLmRldiQ"
+        src="https://generous-quagga-28.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+        type="text/javascript">
+    </script>
+</head>
+<body class="profile-body">
+    <div class="container">
+        <header class="profile-header">
+            <div class="logo-container">
+                <img src="src/images/logo.png" alt="Shadow Heist Logo" class="logo">
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="game.html">Play</a></li>
+                    <li><a href="profile.html" class="active">Profile</a></li>
+                    <li><a href="#" id="logout-button">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="profile-container">
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div id="player-avatar" class="profile-avatar"></div>
+                        <div class="profile-info">
+                            <h2 id="player-name" class="profile-name">Player Name</h2>
+                            <div class="profile-level-container">
+                                <span id="player-level" class="profile-level">Level 1</span>
+                                <div class="progress-bar">
+                                    <div id="xp-progress" class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span id="xp-text" class="xp-text">0/1000 XP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Games Played</div>
+                            <div id="games-played" class="stat-value">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Win Rate</div>
+                            <div id="win-rate" class="stat-value">0%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Tasks Completed</div>
+                            <div id="tasks-completed" class="stat-value">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Best Role</div>
+                            <div id="best-role" class="stat-value">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-info">
+                    <div class="level-header">
+                        <h3 class="level-title">Level Progress</h3>
+                        <span class="level-number" id="level-display">1</span>
+                    </div>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div id="level-progress-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="current-xp">0 XP</span>
+                            <span id="next-level-xp">1000 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <section class="settings-section">
+                    <h2 class="section-title">Settings</h2>
+                    <div class="settings-card">
+                        <h3 class="card-title">General Settings</h3>
+                        <div class="settings-group">
+                            <div class="setting-item">
+                                <label for="theme-toggle">Dark Mode</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="theme-toggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label for="sound-toggle">Game Sounds</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="sound-toggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label for="notification-toggle">Notifications</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="notification-toggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Game Settings</h3>
+                        <div class="settings-group">
+                            <div class="setting-item">
+                                <label for="difficulty-select">Game Difficulty</label>
+                                <select id="difficulty-select" class="settings-select">
+                                    <option value="EASY">Easy</option>
+                                    <option value="NORMAL" selected>Normal</option>
+                                    <option value="HARD">Hard</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="username-input">Display Name</label>
+                                <input type="text" id="username-input" class="settings-input" placeholder="Enter your display name">
+                            </div>
+                            <div class="setting-item">
+                                <label for="avatar-select">Avatar</label>
+                                <button id="open-avatar-modal" class="button secondary-button">Change Avatar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="save-settings" class="button primary-button">Save Settings</button>
+                </section>
+
+                <section class="game-history-section">
+                    <h2 class="section-title">Game History</h2>
+                    <div class="game-history-container">
+                        <table class="game-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Game ID</th>
+                                    <th>Role</th>
+                                    <th>Result</th>
+                                    <th>XP Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody id="game-history-body">
+                                <!-- Game history items will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Avatar Modal -->
+        <div id="avatar-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Choose Avatar</h2>
+                    <span id="avatar-modal-close" class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="avatar-grid" class="avatar-grid">
+                        <!-- Avatar options will be added here dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm-avatar" class="button primary-button">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification-container" class="notification-container"></div>
+    </div>
+
+    <!-- Script Files -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script src="src/js/player-levels.js"></script>
+    <script src="src/js/profile.js"></script>
+</body>
+</html> 

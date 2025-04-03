@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Heist - Game Lobby</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/lobby.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Clerk SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4.66.3/dist/clerk.browser.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="lobby-container">
+            <div class="lobby-header">
+                <h1>Game Lobby</h1>
+                <div class="room-info">
+                    <div class="room-name" id="room-name">Loading...</div>
+                    <div class="room-code">
+                        <span>Room Code: </span>
+                        <span id="room-code" class="code">------</span>
+                        <button id="copy-code-btn" class="btn btn-text btn-small">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lobby-content">
+                <div class="player-list-container">
+                    <h2>Players <span id="player-count">(0/6)</span></h2>
+                    <div class="player-list" id="player-list">
+                        <!-- Player items will be inserted here by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="game-settings-container">
+                    <h2>Game Settings</h2>
+                    <div class="settings-section" id="host-settings">
+                        <div class="role-distribution">
+                            <h3>Role Distribution</h3>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label>Master Thief (Hero)</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="lobby-role-master-thief" checked>
+                                        <span class="slider"></span>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Hacker (Hero)</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="lobby-role-hacker" checked>
+                                        <span class="slider"></span>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Infiltrator (Traitor)</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="lobby-role-infiltrator" checked>
+                                        <span class="slider"></span>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Double Agent (Traitor)</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="lobby-role-double-agent" checked>
+                                        <span class="slider"></span>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Civilians</label>
+                                    <div class="number-input">
+                                        <button class="number-decrement" data-target="lobby-role-civilians">-</button>
+                                        <input type="number" id="lobby-role-civilians" min="0" max="4" value="2">
+                                        <button class="number-increment" data-target="lobby-role-civilians">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="game-options">
+                            <h3>Game Options</h3>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label>Discussion Time</label>
+                                    <div class="number-input">
+                                        <button class="number-decrement" data-target="discussion-time">-</button>
+                                        <input type="number" id="discussion-time" min="30" max="180" value="60" step="15">
+                                        <button class="number-increment" data-target="discussion-time">+</button>
+                                    </div>
+                                    <span class="unit">seconds</span>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Task Time</label>
+                                    <div class="number-input">
+                                        <button class="number-decrement" data-target="task-time">-</button>
+                                        <input type="number" id="task-time" min="15" max="60" value="30" step="15">
+                                        <button class="number-increment" data-target="task-time">+</button>
+                                    </div>
+                                    <span class="unit">seconds</span>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Night Phase Time</label>
+                                    <div class="number-input">
+                                        <button class="number-decrement" data-target="night-time">-</button>
+                                        <input type="number" id="night-time" min="10" max="60" value="20" step="5">
+                                        <button class="number-increment" data-target="night-time">+</button>
+                                    </div>
+                                    <span class="unit">seconds</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-actions">
+                            <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-summary" id="settings-summary">
+                        <h3>Current Settings</h3>
+                        <ul class="settings-list">
+                            <li><strong>Heroes:</strong> <span id="hero-count">2</span></li>
+                            <li><strong>Traitors:</strong> <span id="traitor-count">2</span></li>
+                            <li><strong>Civilians:</strong> <span id="civilian-count">2</span></li>
+                            <li><strong>Discussion Time:</strong> <span id="summary-discussion-time">60</span> seconds</li>
+                            <li><strong>Task Time:</strong> <span id="summary-task-time">30</span> seconds</li>
+                            <li><strong>Night Phase Time:</strong> <span id="summary-night-time">20</span> seconds</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lobby-chat">
+                <h2>Chat</h2>
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Chat messages will be inserted here by JavaScript -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input-field" placeholder="Type a message..." class="input-field">
+                    <button id="send-chat-btn" class="btn btn-primary btn-small">Send</button>
+                </div>
+            </div>
+            
+            <div class="lobby-actions">
+                <button id="leave-lobby-btn" class="btn btn-secondary">Leave Game</button>
+                <div class="ready-status">
+                    <span>Ready</span>
+                    <div class="toggle-switch large">
+                        <input type="checkbox" id="ready-toggle">
+                        <span class="slider"></span>
+                    </div>
+                </div>
+                <button id="start-game-btn" class="btn btn-primary" disabled>Start Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script src="src/js/lobby.js"></script>
+</body>
+</html> 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Heist Online - Register</title>
+    <link rel="stylesheet" href="src/css/auth.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <img src="assets/images/logo.png" alt="Shadow Heist Online" class="logo">
+            <h1>Shadow Heist Online</h1>
+            <p class="tagline">تسجيل في شبكة النخبة من الجواسيس والمتسللين</p>
+        </div>
+        
+        <div class="auth-box">
+            <div class="auth-welcome">
+                <h2>انضم إلى العملية</h2>
+                <p>سجل للمشاركة في المهمات السرية</p>
+            </div>
+            
+            <!-- Clerk Sign-Up Component -->
+            <div id="sign-up-container" class="clerk-container"></div>
+            
+            <div class="auth-separator">
+                <span>أو</span>
+            </div>
+            
+            <div class="auth-footer">
+                <p>لديك حساب بالفعل؟</p>
+                <a href="login.html" class="register-link">تسجيل الدخول</a>
+            </div>
+        </div>
+        
+        <div class="auth-info">
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="info-text">
+                    <h3>مهمات سرية</h3>
+                    <p>شارك في عمليات التجسس والتسلل عالية المخاطر</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div class="info-text">
+                    <h3>تقنيات متطورة</h3>
+                    <p>استخدم أحدث التقنيات والأدوات في مهماتك</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="info-text">
+                    <h3>تصدر قائمة المتصدرين</h3>
+                    <p>نافس أفضل العملاء وحقق إنجازات حصرية</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="auth-error" class="auth-error"></div>
+    
+    <!-- Game Config -->
+    <script src="src/js/config.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Clerk -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="src/js/firebase-service.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script src="src/js/login.js"></script>
+</body>
+</html> 
