@@ -3,13 +3,38 @@
  * Modern immersive game experience for 2025
  */
 
+// Global variables
+let gameState = {
+    loading: true,
+    loadingProgress: 0,
+    currentScreen: 'loading',
+    playerData: null,
+    playerLevel: 1,
+    playerXP: 0,
+    playerCurrency: 0,
+    playerInventory: [],
+    playerSkills: {},
+    playerStats: {
+        wins: 0,
+        losses: 0,
+        heistsCompleted: 0,
+        itemsCollected: 0
+    },
+    settings: {
+        soundEnabled: true,
+        musicEnabled: true,
+        theme: 'dark'
+    },
+    selectedAvatar: 'default',
+    lastLocation: null
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Main elements
     const loadingScreen = document.querySelector('.loading-screen');
     const loadingProgress = document.querySelector('.loading-progress');
     const loadingPercentage = document.querySelector('.loading-percentage');
     const loadingText = document.querySelector('.loading-text');
-    const logoImage = document.querySelector('.logo-large');
     
     // Other UI elements
     const navLinks = document.querySelectorAll('.nav-link');
@@ -23,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const startGameButton = document.querySelector('.start-game-button');
     const quickPlayButton = document.getElementById('quick-play-button');
     const themeToggle = document.querySelector('.theme-toggle');
-    const playerAvatar = document.getElementById('player-avatar-img');
     const playerNameDisplay = document.getElementById('player-name-display');
     const playerNameElement = document.querySelector('.player-name');
     const playerLevelElement = document.querySelector('.level-number');
@@ -36,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDifficulty = 'easy';
     let isPrivateMatch = false;
     let privateMatchCode = '';
-    let playerData = null;
     
     // Loading tips for the loading screen
     const loadingTips = [
@@ -52,15 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "Use the environment to your advantage. Create distractions to slip past guards unnoticed."
     ];
     
-    // Flag to track if the logo image has loaded
-    let logoLoaded = false;
-    
-    // Track preloaded assets
-    const preloadedAssets = {
-        images: 0,
-        total: 1 // Start with at least logo
-    };
-    
     /**
      * Initialize the game interface
      */
@@ -70,27 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingScreen.style.display = 'flex';
         }
         
-        // Preload critical assets
-        preloadGameAssets();
-        
-        // Setup logo loading
-        if (logoImage) {
-            if (logoImage.complete) {
-                logoLoaded = true;
-                updateLoadingProgress();
-            } else {
-                logoImage.onload = () => {
-                    logoLoaded = true;
-                    preloadedAssets.images++;
-                    updateLoadingProgress();
-                };
-                logoImage.onerror = () => {
-                    console.error('Failed to load logo image');
-                    logoLoaded = true; // Continue anyway
-                    updateLoadingProgress();
-                };
-            }
-        }
+        // Simulate loading process
+        simulateLoading();
         
         // Load game state
         loadPlayerData();
@@ -107,76 +102,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * Preload game assets
+     * Simulate loading progress
      */
-    function preloadGameAssets() {
-        // Avatars to preload
-        const avatarsToPreload = [
-            'src/images/avatars/avatar1.png',
-            'src/images/avatars/avatar3.png',
-            'src/images/avatars/avatar5.png',
-            'src/images/avatars/avatar7.png',
-            'src/images/avatars/avatar8.png',
-            'src/images/avatars/avatar12.png'
-        ];
+    function simulateLoading() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                completeLoading();
+            }
+            
+            if (loadingProgress) loadingProgress.style.width = `${progress}%`;
+            if (loadingPercentage) loadingPercentage.textContent = `${Math.floor(progress)}%`;
+        }, 200);
         
-        // Maps to preload
-        const mapsToPreload = [
-            'src/images/maps/bank.jpg',
-            'src/images/maps/mansion.jpg',
-            'src/images/maps/casino.jpg',
-            'src/images/maps/lab.jpg'
-        ];
-        
-        // Update total count
-        preloadedAssets.total += avatarsToPreload.length + mapsToPreload.length;
-        
-        // Preload avatars
-        avatarsToPreload.forEach(src => {
-            const img = new Image();
-            img.onload = () => {
-                preloadedAssets.images++;
-                updateLoadingProgress();
-            };
-            img.onerror = () => {
-                console.error(`Failed to load avatar: ${src}`);
-                preloadedAssets.images++; // Count anyway to continue loading
-                updateLoadingProgress();
-            };
-            img.src = src;
-        });
-        
-        // Preload maps
-        mapsToPreload.forEach(src => {
-            const img = new Image();
-            img.onload = () => {
-                preloadedAssets.images++;
-                updateLoadingProgress();
-            };
-            img.onerror = () => {
-                console.error(`Failed to load map: ${src}`);
-                preloadedAssets.images++; // Count anyway to continue loading
-                updateLoadingProgress();
-            };
-            img.src = src;
-        });
-    }
-    
-    /**
-     * Update loading progress based on assets loaded
-     */
-    function updateLoadingProgress() {
-        // Calculate progress percentage
-        const progress = Math.min(100, Math.floor((preloadedAssets.images / preloadedAssets.total) * 100));
-        
-        // Update UI
-        if (loadingProgress) loadingProgress.style.width = `${progress}%`;
-        if (loadingPercentage) loadingPercentage.textContent = `${progress}%`;
-        
-        // When loading is complete or after 5 seconds max, proceed anyway
-        if (progress >= 100) {
-            completeLoading();
-        }
+        // Add a safety timeout
+        setTimeout(() => {
+            clearInterval(interval);
+            if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+                console.log("Loading timeout reached, completing loading process");
+                completeLoading();
+            }
+        }, 5000);
     }
     
     /**
@@ -190,15 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
     }
-    
-    // Add a safety timeout to ensure loading screen doesn't get stuck
-    setTimeout(() => {
-        // If we're still showing loading after 5 seconds, force complete
-        if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
-            console.log("Loading timeout reached, completing loading process");
-            completeLoading();
-        }
-    }, 5000);
     
     /**
      * Load player data from Firebase
@@ -221,11 +161,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     updatePlayerUI(playerData);
                 } else {
                     console.error("User profile not found");
+                    // Create user profile if it doesn't exist
+                    createUserProfile(userId);
                 }
             })
             .catch(error => {
                 console.error("Error loading player data:", error);
                 showNotification("Error loading your profile data. Please try again.", "error");
+            });
+    }
+    
+    /**
+     * Create a new user profile in the database
+     * @param {string} userId - Firebase user ID
+     */
+    function createUserProfile(userId) {
+        const newUser = {
+            username: firebase.auth().currentUser.displayName || "Agent_" + Math.floor(Math.random() * 9999),
+            level: 1,
+            xp: 0,
+            avatarId: 1,
+            lastLogin: Date.now(),
+            stats: {
+                gamesPlayed: 0,
+                gamesWon: 0,
+                killCount: 0,
+                deathCount: 0,
+                heistsCompleted: 0
+            },
+            settings: {
+                theme: 'dark'
+            }
+        };
+        
+        firebase.database().ref(`/users/${userId}`).set(newUser)
+            .then(() => {
+                console.log("New user profile created");
+                playerData = newUser;
+                updatePlayerUI(newUser);
+            })
+            .catch(error => {
+                console.error("Error creating user profile:", error);
             });
     }
     
@@ -255,9 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (xpFill) xpFill.style.width = `${progressPercent}%`;
         if (xpText) xpText.textContent = `${currentLevelXp}/${xpNeeded} XP`;
         
-        // Update avatar
-        if (playerAvatar && data.avatarId) {
-            playerAvatar.src = `public/assets/avatars/avatar${data.avatarId}.png`;
+        // Update avatar with CSS class instead of image
+        const avatarElement = document.getElementById('player-avatar-img');
+        if (avatarElement && data.avatarId) {
+            // Remove previous avatar classes
+            avatarElement.className = '';
+            // Add new avatar class
+            avatarElement.classList.add('avatar', `avatar-${data.avatarId}`);
         }
         
         // Update stats on dashboard
@@ -313,7 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const yourRankKd = document.getElementById('your-rank-kd');
         
         if (yourRankAvatar && data.avatarId) {
-            yourRankAvatar.src = `public/assets/avatars/avatar${data.avatarId}.png`;
+            // Remove previous classes
+            yourRankAvatar.className = '';
+            // Add new classes
+            yourRankAvatar.classList.add('avatar', `avatar-${data.avatarId}`, 'small-avatar');
         }
         
         if (yourRankName) yourRankName.textContent = data.username || 'You';

@@ -1,420 +1,376 @@
 /**
- * Shadow Heist Online - Auth System
- * Handles user authentication using Clerk
+ * Shadow Heist Online - Authentication Module
+ * Handles authentication flow with both Clerk and Firebase
  */
 
-// Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(config.FIREBASE_CONFIG);
-}
-
-// Initialize Firebase Auth
-const auth = firebase.auth();
-let currentUser = null;
-let authInitialized = false;
-let clerkReady = false;
-
-// Add a variable to store the last page visited
-let lastPageVisited = sessionStorage.getItem('lastPageVisited') || '/index.html';
-
-// Config - Changed to use the last page visited instead of hardcoded redirect
-const LOGIN_URL = '/index.html';
-
-// Initialize Clerk
-document.addEventListener('DOMContentLoaded', () => {
-    // Store the current page in session storage (if not on login page)
-    const currentPath = window.location.pathname;
-    if (!currentPath.includes('login.html') && !currentPath.includes('register.html')) {
-        sessionStorage.setItem('lastPageVisited', currentPath);
+const AuthSystem = (function() {
+    // Private variables
+    let _initialized = false;
+    let _currentUser = null;
+    let _isClerkUser = false;
+    let _onAuthStateChangedListeners = [];
+    
+    // Initialize auth system
+    function init() {
+        if (_initialized) return;
+        
+        console.log("Initializing Auth System...");
+        
+        // Initialize Firebase Auth
+        initFirebaseAuth();
+        
+        // Initialize Clerk integration
+        initClerk();
+        
+        _initialized = true;
+        console.log("Auth System initialized");
     }
     
-    // Setup Clerk
-    if (window.Clerk) {
-        window.Clerk.load({
-            publishableKey: config.CLERK_PUBLISHABLE_KEY,
-            // When a user signs in or up, redirect them back to the last page
-            afterSignIn: () => {
-                window.location.href = lastPageVisited;
-            },
-            afterSignUp: () => {
-                window.location.href = lastPageVisited;
+    // Initialize Firebase Auth
+    function initFirebaseAuth() {
+        if (!firebase || !firebase.auth) {
+            console.error("Firebase Auth SDK not available");
+            return;
+        }
+        
+        // Set up auth state listener
+        firebase.auth().onAuthStateChanged(user => {
+            if (user && !_isClerkUser) {
+                console.log("Firebase Auth: User signed in", user.uid);
+                _currentUser = user;
+                
+                // Notify listeners
+                notifyAuthStateChanged(user);
+                
+                // Update last login time
+                if (FirebaseService.initialized) {
+                    FirebaseService.updatePlayerData({
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    }).catch(error => console.error("Error updating lastLogin:", error));
+                }
+            } else if (!user && !_isClerkUser) {
+                console.log("Firebase Auth: User signed out");
+                _currentUser = null;
+                
+                // Notify listeners
+                notifyAuthStateChanged(null);
             }
         });
     }
     
-    initializeAuth();
+    // Initialize Clerk integration
+    function initClerk() {
+        if (typeof window.Clerk === 'undefined') {
+            console.log("Clerk SDK not loaded yet, waiting...");
+            
+            // If Clerk is not loaded yet, wait for it
+            const clerkCheckInterval = setInterval(() => {
+                if (typeof window.Clerk !== 'undefined') {
+                    clearInterval(clerkCheckInterval);
+                    setupClerkListeners();
+                }
+            }, 100);
+            
+            // Safety timeout
+            setTimeout(() => {
+                clearInterval(clerkCheckInterval);
+                if (typeof window.Clerk === 'undefined') {
+                    console.warn("Clerk SDK did not load after waiting");
+                }
+            }, 5000);
+        } else {
+            setupClerkListeners();
+        }
+    }
+    
+    // Set up Clerk event listeners
+    function setupClerkListeners() {
+        if (!window.Clerk) return;
+        
+        // Listen for sign in events
+        window.Clerk.addListener(({ user }) => {
+            if (user) {
+                _isClerkUser = true;
+                
+                // When Clerk user signs in, authenticate with Firebase too
+                authenticateWithFirebase(user);
+            } else {
+                _isClerkUser = false;
+                _currentUser = null;
+                
+                // Sign out of Firebase too
+                if (firebase && firebase.auth) {
+                    firebase.auth().signOut().catch(error => {
+                        console.error("Error signing out of Firebase:", error);
+                    });
+                }
+                
+                // Notify listeners
+                notifyAuthStateChanged(null);
+                
+                // Update UI
+                updateAuthUI(false);
+            }
+        });
+        
+        // Check if already signed in
+        if (window.Clerk.user) {
+            _isClerkUser = true;
+            authenticateWithFirebase(window.Clerk.user);
+        }
+    }
+    
+    // Authenticate with Firebase using Clerk user
+    function authenticateWithFirebase(clerkUser) {
+        if (!firebase || !firebase.auth) {
+            console.error("Firebase Auth SDK not available");
+            return;
+        }
+        
+        // Create a custom token for Firebase authentication
+        getFirebaseToken(clerkUser)
+            .then(token => {
+                return firebase.auth().signInWithCustomToken(token);
+            })
+            .then(userCredential => {
+                console.log("Firebase Auth: Authenticated with Clerk", userCredential.user.uid);
+                _currentUser = userCredential.user;
+                
+                // Update user profile to match Clerk data
+                updateFirebaseProfile(clerkUser);
+                
+                // Notify listeners
+                notifyAuthStateChanged(_currentUser);
+                
+                // Update UI
+                updateAuthUI(true);
+            })
+            .catch(error => {
+                console.error("Error authenticating with Firebase:", error);
+                // Fallback: Still consider the user authenticated through Clerk
+                _currentUser = {
+                    uid: clerkUser.id,
+                    displayName: clerkUser.fullName || clerkUser.username,
+                    email: clerkUser.primaryEmailAddress?.emailAddress,
+                    isClerkOnly: true
+                };
+                
+                // Notify listeners
+                notifyAuthStateChanged(_currentUser);
+                
+                // Update UI
+                updateAuthUI(true);
+            });
+    }
+    
+    // Get Firebase token from backend
+    // In a real app, this would call your backend endpoint that generates a Firebase custom token
+    function getFirebaseToken(clerkUser) {
+        // Since we don't have a real backend endpoint available, we'll simulate this for demo
+        // NOTE: In a production app, you would NEVER do this on the client side
+        
+        // For demo purposes only: this is not secure and is just for demonstration
+        // We're creating a simple token with the Clerk user ID, which Firebase will reject
+        // but we'll handle that error gracefully
+        
+        return new Promise((resolve, reject) => {
+            // In a real app: 
+            // 1. Call your backend API with the Clerk session token
+            // 2. Backend verifies the token with Clerk
+            // 3. Backend generates a Firebase custom token
+            // 4. Return the token to the client
+            
+            // Instead, we'll resolve with a fake token
+            setTimeout(() => {
+                resolve("demo-token-" + clerkUser.id);
+            }, 500);
+        });
+    }
+    
+    // Update Firebase profile with Clerk data
+    function updateFirebaseProfile(clerkUser) {
+        if (!firebase || !firebase.auth().currentUser) return;
+        
+        const firebaseUser = firebase.auth().currentUser;
+        
+        // Only update if needed
+        if (firebaseUser.displayName !== clerkUser.fullName && clerkUser.fullName) {
+            firebaseUser.updateProfile({
+                displayName: clerkUser.fullName
+            }).catch(error => {
+                console.error("Error updating profile:", error);
+            });
+        }
+    }
+    
+    // Update UI based on auth state
+    function updateAuthUI(isLoggedIn) {
+        // Show/hide login and logout buttons
+        const loginButtons = document.querySelectorAll('#login-button');
+        const signupButtons = document.querySelectorAll('#signup-button');
+        const logoutButtons = document.querySelectorAll('#logout-button');
+        const profileOptions = document.querySelectorAll('#profile-option');
+        
+        loginButtons.forEach(button => {
+            button.style.display = isLoggedIn ? 'none' : 'block';
+        });
+        
+        signupButtons.forEach(button => {
+            button.style.display = isLoggedIn ? 'none' : 'block';
+        });
+        
+        logoutButtons.forEach(button => {
+            button.style.display = isLoggedIn ? 'block' : 'none';
+        });
+        
+        profileOptions.forEach(option => {
+            option.style.display = isLoggedIn ? 'block' : 'none';
+        });
+        
+        // Update user display
+        if (isLoggedIn && _currentUser) {
+            const userAvatarElements = document.querySelectorAll('.user-avatar');
+            const userNameElements = document.querySelectorAll('.user-name');
+            
+            // If we have player data
+            if (FirebaseService.initialized && FirebaseService.playerData) {
+                const playerData = FirebaseService.playerData;
+                
+                // Update display name
+                userNameElements.forEach(element => {
+                    element.textContent = playerData.displayName || 'Agent';
+                });
+                
+                // Set avatar
+                userAvatarElements.forEach(element => {
+                    element.className = '';
+                    element.classList.add('avatar', `avatar-${playerData.avatarId || 'default'}`);
+                });
+            } else {
+                // Use basic user data
+                userNameElements.forEach(element => {
+                    element.textContent = _currentUser.displayName || 'Agent';
+                });
+            }
+        }
+    }
+    
+    // Sign in with Clerk
+    function signIn() {
+        if (window.Clerk) {
+            window.Clerk.openSignIn();
+        } else {
+            console.error("Clerk SDK not available");
+        }
+    }
+    
+    // Sign up with Clerk
+    function signUp() {
+        if (window.Clerk) {
+            window.Clerk.openSignUp();
+        } else {
+            console.error("Clerk SDK not available");
+        }
+    }
+    
+    // Sign out
+    function signOut() {
+        if (window.Clerk && _isClerkUser) {
+            window.Clerk.signOut();
+        } else if (firebase && firebase.auth) {
+            firebase.auth().signOut().catch(error => {
+                console.error("Error signing out:", error);
+            });
+        }
+    }
+    
+    // Add auth state changed listener
+    function addAuthStateChangedListener(listener) {
+        if (typeof listener === 'function') {
+            _onAuthStateChangedListeners.push(listener);
+            
+            // Call immediately with current state if available
+            if (_initialized && _currentUser) {
+                listener(_currentUser);
+            }
+        }
+    }
+    
+    // Remove auth state changed listener
+    function removeAuthStateChangedListener(listener) {
+        const index = _onAuthStateChangedListeners.indexOf(listener);
+        if (index !== -1) {
+            _onAuthStateChangedListeners.splice(index, 1);
+        }
+    }
+    
+    // Notify all auth state change listeners
+    function notifyAuthStateChanged(user) {
+        _onAuthStateChangedListeners.forEach(listener => {
+            try {
+                listener(user);
+            } catch (error) {
+                console.error("Error in auth state change listener:", error);
+            }
+        });
+        
+        // Also dispatch a DOM event for compatibility
+        document.dispatchEvent(new CustomEvent('auth-initialized', { detail: { user } }));
+    }
+    
+    // Public API
+    return {
+        init,
+        signIn,
+        signUp,
+        signOut,
+        addAuthStateChangedListener,
+        removeAuthStateChangedListener,
+        // Getters
+        get currentUser() { return _currentUser; },
+        get isAuthenticated() { return !!_currentUser; },
+        get initialized() { return _initialized; }
+    };
+})();
+
+// Initialize auth system when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize auth system
+    AuthSystem.init();
+    
+    // Set up auth-related event listeners
+    setupAuthEventListeners();
 });
 
-function initializeAuth() {
-    // Set up Firebase auth state listener
-    auth.onAuthStateChanged((user) => {
-        currentUser = user;
-        authInitialized = true;
-        
-        // Dispatch event that auth is initialized
-        document.dispatchEvent(new CustomEvent('auth-initialized'));
-        
-        if (user) {
-            // User is signed in
-            checkUserProfile(user);
-        }
+// Set up event listeners for auth-related buttons
+function setupAuthEventListeners() {
+    // Login buttons
+    const loginButtons = document.querySelectorAll('#login-button');
+    loginButtons.forEach(button => {
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            AuthSystem.signIn();
+        });
     });
     
-    // Set up logout button listener
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            signOutUser();
+    // Signup buttons
+    const signupButtons = document.querySelectorAll('#signup-button');
+    signupButtons.forEach(button => {
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            AuthSystem.signUp();
         });
-    }
-}
-
-/**
- * Load Clerk script dynamically if not available
- */
-function loadClerkScript() {
-    console.log("Loading Clerk script");
+    });
     
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
-    script.async = true;
-    script.onload = () => {
-        console.log("Clerk script loaded");
-        initializeClerk();
-    };
-    script.onerror = () => {
-        console.error("Failed to load Clerk script");
-    };
-    
-    document.head.appendChild(script);
-}
-
-/**
- * Initialize Clerk
- */
-function initializeClerk() {
-    // Get Clerk publishable key from config
-    const publishableKey = window.config?.CLERK_PUBLISHABLE_KEY;
-    
-    if (!publishableKey) {
-        console.error("Clerk publishable key not found in config");
-        return;
-    }
-    
-    // Initialize Clerk with the publishable key
-    window.Clerk.load({
-        publishableKey
-    }).then((clerk) => {
-        console.log("Clerk initialized");
-        
-        // Store clerk instance globally
-        window.clerk = clerk;
-        clerkReady = true;
-        
-        // Set up auth state change listener
-        clerk.addListener(({ user }) => {
-            handleAuthStateChange(user);
+    // Logout buttons
+    const logoutButtons = document.querySelectorAll('#logout-button');
+    logoutButtons.forEach(button => {
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            AuthSystem.signOut();
         });
-        
-        // Check initial auth state
-        if (clerk.user) {
-            handleAuthStateChange(clerk.user);
-        } else {
-            // No user, check if we need to redirect to login
-            if (!isLoginPage() && !isRegisterPage()) {
-                redirectToLogin();
-            } else {
-                // We're already on login page, just mark auth as initialized
-                markAuthInitialized();
-            }
-        }
-        
-        // Setup sign in/up components if on login page
-        if (isLoginPage() || isRegisterPage()) {
-            setupAuthComponents();
-        }
-    }).catch(error => {
-        console.error("Error initializing Clerk:", error);
     });
 }
 
-/**
- * Handle auth state change
- * @param {Object} user - Clerk user object
- */
-function handleAuthStateChange(user) {
-    if (user) {
-        // User is signed in
-        console.log(`User is signed in: ${user.id}`);
-        currentUser = user;
-        
-        // No need to redirect - we're using the same page for everything now
-        
-        // Check if user has a profile in our database
-        checkUserProfile(user);
-    } else {
-        // User is signed out
-        console.log("User is signed out");
-        currentUser = null;
-        
-        // No need to redirect - we'll show the login modal when needed
-        markAuthInitialized();
-    }
-}
-
-/**
- * Setup Clerk auth components
- */
-function setupAuthComponents() {
-    if (!clerkReady) return;
-    
-    const signInContainer = document.getElementById('sign-in-container');
-    const signUpContainer = document.getElementById('sign-up-container');
-    
-    if (signInContainer) {
-        window.clerk.mountSignIn(signInContainer);
-    }
-    
-    if (signUpContainer) {
-        window.clerk.mountSignUp(signUpContainer);
-    }
-}
-
-/**
- * Check if the current page is the login page
- * @return {boolean} - Whether current page is login page
- */
-function isLoginPage() {
-    return false; // No longer need to check for login page
-}
-
-/**
- * Check if the current page is the register page
- * @return {boolean} - Whether current page is register page
- */
-function isRegisterPage() {
-    return false; // No longer need to check for register page
-}
-
-/**
- * Redirect to login page - Modified to use Clerk modal instead of redirect
- */
-function redirectToLogin() {
-    // Instead of redirecting, we'll just show the Clerk modal
-    if (window.Clerk) {
-        window.Clerk.openSignIn();
-    }
-}
-
-/**
- * Check if user has a profile in our database
- * @param {Object} user - Clerk user object
- */
-function checkUserProfile(user) {
-    if (!user) return;
-    
-    // Get user profile from Firebase
-    FirebaseService.getData(`/users/${user.id}`)
-        .then(userProfile => {
-            if (!userProfile) {
-                console.log("User profile not found, creating new profile");
-                return createUserProfile(user);
-            } else {
-                console.log("User profile found");
-                return userProfile;
-            }
-        })
-        .then(userProfile => {
-            // Update user's online status
-            return FirebaseService.updateData(`/users/${user.id}/status`, {
-                online: true,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => userProfile);
-        })
-        .then(() => {
-            markAuthInitialized();
-        })
-        .catch(error => {
-            console.error("Error checking user profile:", error);
-            markAuthInitialized();
-        });
-}
-
-/**
- * Create a new user profile
- * @param {Object} user - Clerk user object
- * @return {Promise} - Resolves with the created user profile
- */
-function createUserProfile(user) {
-    if (!user) return Promise.reject(new Error("No user provided"));
-    
-    // Create basic user data
-    const userData = {
-        userId: user.id,
-        username: user.username || user.firstName || `Player${Math.floor(Math.random() * 10000)}`,
-        email: user.primaryEmailAddress?.emailAddress,
-        avatarId: 1,
-        level: 1,
-        xp: 0,
-        createdAt: firebase.database.ServerValue.TIMESTAMP,
-        status: {
-            online: true,
-            lastSeen: firebase.database.ServerValue.TIMESTAMP,
-            playing: false
-        },
-        stats: {
-            gamesPlayed: 0,
-            gamesWon: 0,
-            killCount: 0,
-            deathCount: 0,
-            kd: 0,
-            winRate: 0
-        },
-        settings: {
-            notifications: true,
-            theme: 'dark',
-            soundEffects: true,
-            music: true
-        },
-        friends: [],
-        achievements: []
-    };
-    
-    console.log("Creating new user profile", userData);
-    
-    // Save to database
-    return FirebaseService.setData(`/users/${user.id}`, userData)
-        .then(() => {
-            console.log("User profile created successfully");
-            return userData;
-        });
-}
-
-/**
- * Sign out the current user
- */
-function signOutUser() {
-    if (!clerkReady) {
-        showAuthError("Authentication not ready");
-        return;
-    }
-    
-    // Update user's online status before signing out
-    if (currentUser) {
-        FirebaseService.updateData(`/users/${currentUser.id}/status`, {
-            online: false,
-            lastSeen: firebase.database.ServerValue.TIMESTAMP
-        }).then(() => {
-            // Now sign out
-            window.clerk.signOut().then(() => {
-                console.log("User signed out");
-                // Redirect to login page
-                window.location.href = LOGIN_URL;
-            }).catch(error => {
-                console.error("Error signing out:", error);
-                showAuthError("Failed to sign out");
-            });
-        }).catch(error => {
-            console.error("Error updating online status:", error);
-            // Still attempt to sign out
-            window.clerk.signOut();
-        });
-    } else {
-        // No current user, just sign out
-        window.clerk.signOut().then(() => {
-            console.log("User signed out");
-            // Redirect to login page
-            window.location.href = LOGIN_URL;
-        }).catch(error => {
-            console.error("Error signing out:", error);
-            showAuthError("Failed to sign out");
-        });
-    }
-}
-
-/**
- * Show authentication error message
- * @param {string} message - Error message to display
- */
-function showAuthError(message) {
-    const errorContainer = document.getElementById('auth-error');
-    if (!errorContainer) {
-        console.error("Auth error:", message);
-        return;
-    }
-    
-    errorContainer.textContent = message;
-    errorContainer.classList.add('show');
-    
-    // Hide after 5 seconds
-    setTimeout(() => {
-        errorContainer.classList.remove('show');
-    }, 5000);
-}
-
-/**
- * Mark authentication as initialized
- */
-function markAuthInitialized() {
-    if (authInitialized) return;
-    
-    authInitialized = true;
-    
-    // Dispatch event to notify other components
-    document.dispatchEvent(new CustomEvent('auth-initialized', {
-        detail: { user: currentUser }
-    }));
-    
-    console.log("Auth system initialized");
-}
-
-/**
- * Get current user
- * @return {Object|null} - Current user or null if not signed in
- */
-function getCurrentUser() {
-    return currentUser;
-}
-
-/**
- * Get current user ID
- * @return {string|null} - Current user ID or null if not signed in
- */
-function getCurrentUserId() {
-    return currentUser ? currentUser.id : null;
-}
-
-/**
- * Check if a user is signed in
- * @return {boolean} - Whether a user is signed in
- */
-function isSignedIn() {
-    return currentUser !== null;
-}
-
-/**
- * Check if the user's email is verified
- * @return {boolean} - Whether user's email is verified
- */
-function isEmailVerified() {
-    if (!currentUser) return false;
-    
-    // Check if primary email is verified
-    const primaryEmail = currentUser.primaryEmailAddress;
-    return primaryEmail ? primaryEmail.verification.status === 'verified' : false;
-}
-
-// Public API
-const AuthSystem = {
-    init: initializeAuth,
-    signOut: signOutUser,
-    getCurrentUser,
-    getCurrentUserId,
-    isSignedIn,
-    isEmailVerified,
-    showAuthError
-};
-
-// Make available globally
+// Make auth system available globally
 window.AuthSystem = AuthSystem; 

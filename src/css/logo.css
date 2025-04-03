@@ -1,67 +1,154 @@
-/* Logo Styling */
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/**
+ * Shadow Heist Online - Logo Styles
+ * Modern, futuristic logo for 2025 gaming experience
+ */
 
-.logo {
-    width: auto;
-    height: 60px;
-    transition: transform 0.3s ease;
-}
-
-.logo:hover {
-    transform: scale(1.05);
-}
-
-.logo-large {
-    height: 120px;
-}
-
-.logo-container.centered {
-    margin: 2rem auto;
-    text-align: center;
-}
-
-.logo-text {
-    font-size: 2.5rem;
+.game-logo {
+    font-family: 'Rajdhani', 'Arial', sans-serif;
     font-weight: 700;
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    letter-spacing: 2px;
+    line-height: 1;
+    text-align: center;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 25px rgba(117, 81, 255, 0.5));
+    cursor: default;
+    position: relative;
+    user-select: none;
+}
+
+.logo-shadow {
+    display: block;
+    font-size: 52px;
+    background: linear-gradient(90deg, #7551FF 0%, #00E5FF 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-left: 0.5rem;
+    text-transform: uppercase;
+    margin-bottom: -5px;
+    position: relative;
 }
 
-/* Logo Animation */
-@keyframes logoFloat {
+.logo-shadow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #7551FF 0%, #00E5FF 100%);
+    filter: blur(15px);
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.logo-heist {
+    display: block;
+    font-size: 72px;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    margin-bottom: -10px;
+    position: relative;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.logo-heist::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.8) 50%,
+        rgba(255,255,255,0) 100%);
+    bottom: 0;
+    left: 10%;
+}
+
+.logo-online {
+    display: block;
+    font-size: 24px;
+    background: linear-gradient(90deg, #FF5E8A 0%, #FF9966 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    padding-right: 8px; /* Compensate for letter-spacing on last letter */
+}
+
+/* Animated version for loading screen */
+.game-logo.animated .logo-shadow {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.game-logo.animated .logo-heist::after {
+    animation: scanline 3s ease-in-out infinite;
+}
+
+@keyframes glow {
     0% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
+        filter: brightness(1);
+        text-shadow: 0 0 5px rgba(117, 81, 255, 0.5);
     }
     100% {
-        transform: translateY(0);
+        filter: brightness(1.5);
+        text-shadow: 0 0 15px rgba(117, 81, 255, 0.8);
     }
 }
 
-.logo-animated {
-    animation: logoFloat 3s ease-in-out infinite;
+@keyframes scanline {
+    0%, 100% {
+        transform: translateX(-20%);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(20%);
+        opacity: 1;
+    }
 }
 
-/* Responsive Adjustments */
+/* Smaller version for header */
+.logo-small {
+    display: flex;
+    align-items: baseline;
+}
+
+.logo-small .logo-shadow {
+    font-size: 28px;
+    margin-bottom: 0;
+}
+
+.logo-small .logo-online {
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+/* Small screens */
 @media (max-width: 768px) {
-    .logo {
-        height: 40px;
+    .game-logo .logo-shadow {
+        font-size: 42px;
     }
     
-    .logo-large {
-        height: 80px;
+    .game-logo .logo-heist {
+        font-size: 58px;
     }
     
-    .logo-text {
-        font-size: 1.8rem;
+    .game-logo .logo-online {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-logo .logo-shadow {
+        font-size: 36px;
+    }
+    
+    .game-logo .logo-heist {
+        font-size: 48px;
+    }
+    
+    .game-logo .logo-online {
+        font-size: 18px;
     }
 } 
